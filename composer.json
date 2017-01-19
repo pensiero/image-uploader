@@ -1,0 +1,25 @@
+{
+  "name": "uala/image-uploader",
+  "description": "Image uploader and resizer",
+  "homepage": "https://imageuploader.uala.it/",
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Oscar Fanelli",
+      "email": "oscar.fanelli@gmail.com",
+      "homepage": "http://www.oscarfanelli.com",
+      "role": "Developer"
+    },
+    {
+      "name": "Luca Mattivi",
+      "email": "luca@smartdomotik.com",
+      "homepage": "http://www.smartdomotik.com",
+      "role": "Developer"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=7.0",
+    "ext-imagick": "*"
+  }
+}
