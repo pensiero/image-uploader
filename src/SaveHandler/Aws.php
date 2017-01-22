@@ -40,29 +40,26 @@ class Aws implements SaveHandlerInterface
 
         // TODO: This should stay in a GenericAdapter (only for images?)
         if ($adapter->has($remotePath)) {
-            $image = $adapter->get($remotePath);
-            return $image;
+            return $adapter->get($remotePath);
         }
-        else if ($adapter->has($originalPath)) {
-            $originalFile = $adapter->get($originalPath);
 
-            Image::configure(array('driver' => 'imagick'));
-
-            $editedImage = Image::make($originalFile);
-            $editedImage->fit($width, $height, function ($constraint) {
-                $constraint->upsize();
-            },'center');
-            $editedImage->encode('jpg', 85);
-
-            $resizedRemotePath = '/' . $width . 'x' . $height . '/' . $id;
-            $adapter->put($resizedRemotePath, $editedImage->__toString(), 'public');
-
-            return $editedImage;
-        }
-        else {
+        if (!$adapter->has($originalPath)) {
             throw new NotFoundException('This Image cannot be generated because original image doesn\'t exist');
         }
 
+        $originalFile = $adapter->get($originalPath);
 
+        Image::configure(array('driver' => 'imagick'));
+
+        $editedImage = Image::make($originalFile);
+        $editedImage->fit($width, $height, function ($constraint) {
+            $constraint->upsize();
+        },'center');
+        $editedImage->encode('jpg', 85);
+
+        $resizedRemotePath = '/' . $width . 'x' . $height . '/' . $id;
+        $adapter->put($resizedRemotePath, $editedImage->__toString(), 'public');
+
+        return $editedImage;
     }
 }
