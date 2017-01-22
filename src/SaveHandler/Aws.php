@@ -33,20 +33,17 @@ class Aws implements SaveHandlerInterface
 
         $originalPath = '/original/' . $id;
         $remotePath = $originalPath;
-        if ($width != null)
-        {
+        if ($width != null) {
             $remotePath = '/' . $width . 'x' . $height . '/' . $id;
         }
 
 
         // TODO: This should stay in a GenericAdapter (only for images?)
-        if ($adapter->has($remotePath))
-        {
+        if ($adapter->has($remotePath)) {
             $image = $adapter->get($remotePath);
             return $image;
         }
-        else if ($adapter->has($originalPath))
-        {
+        else if ($adapter->has($originalPath)) {
             $originalFile = $adapter->get($originalPath);
 
             Image::configure(array('driver' => 'imagick'));
@@ -62,8 +59,7 @@ class Aws implements SaveHandlerInterface
 
             return $editedImage;
         }
-        else
-        {
+        else {
             throw new NotFoundException('This Image cannot be generated because original image doesn\'t exist');
         }
 
