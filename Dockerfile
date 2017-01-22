@@ -27,15 +27,15 @@ RUN apt-get install -yqq --force-yes \
     zip \
     unzip \
     apache2 \
-    libapache2-mod-php7.0 \
+    libapache2-mod-php \
     curl \
-    php7.0 \
-    php7.0-dom \
-    php7.0-mbstring \
-    php7.0-intl \
-    php7.0-mcrypt \
-    php7.0-cgi \
-    php7.0-curl \
+    php \
+    php-dom \
+    php-mbstring \
+    php-intl \
+    php-mcrypt \
+    php-cgi \
+    php-curl \
     php-imagick \
     gettext
 
