@@ -19,25 +19,19 @@ RUN apt-get update && apt-get upgrade -y --force-yes
 
 # Utilities, Apache, PHP, and supplementary programs
 RUN apt-get install -yqq --force-yes \
-    npm \
+    curl \
     git \
-    htop \
-    nano \
+    npm \
     wget \
     zip \
-    unzip \
     apache2 \
     libapache2-mod-php \
-    curl \
     php \
     php-dom \
     php-mbstring \
     php-intl \
     php-mcrypt \
-    php-cgi \
-    php-curl \
-    php-imagick \
-    gettext
+    php-imagick
 
 RUN ln -s "$(which nodejs)" /usr/bin/node
 
