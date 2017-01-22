@@ -49,6 +49,13 @@ RUN echo "ServerName localhost" | tee /etc/apache2/conf-available/fqdn.conf && \
 RUN echo "Europe/Paris" > /etc/timezone && \
     dpkg-reconfigure -f noninteractive tzdata
 
+# Cleanup
+RUN apt-get purge -yq \
+      wget \
+      patch \
+      software-properties-common && \
+    apt-get autoremove -yqq
+
 # Port to expose
 EXPOSE 80
 
