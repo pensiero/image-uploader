@@ -21,6 +21,7 @@ RUN apt-get update && apt-get upgrade -y --force-yes
 RUN apt-get install -yqq --force-yes \
     curl \
     git \
+    nano \
     wget \
     zip \
     apache2 \
@@ -30,13 +31,14 @@ RUN apt-get install -yqq --force-yes \
     php-mbstring \
     php-intl \
     php-mcrypt \
-    php-imagick
+    php-imagick \
+    php-xdebug
 
 # Apache mods
 RUN a2enmod rewrite expires headers
 
 # Custom PHP.ini
-COPY config/docker/production/php.ini $PHP_INI_CONFD/custom-php.ini
+COPY config/docker/development/php.ini $PHP_INI_CONFD/custom-php.ini
 
 # Apache2 conf
 RUN echo "ServerName localhost" | tee /etc/apache2/conf-available/fqdn.conf && \
@@ -62,13 +64,8 @@ COPY config/docker/apache-vhost.conf /etc/apache2/sites-available/000-default.co
 # Change workdir
 WORKDIR $PROJECT_PATH
 
-# Copy composer json and lock file before the copy o the entire project
-COPY composer.json $PROJECT_PATH/composer.json
-COPY composer.lock $PROJECT_PATH/composer.lock
-
-# Composer
+# Composer (only service)
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer install --no-interaction --optimize-autoloader
 
 # Copy site into place
 COPY . $PROJECT_PATH

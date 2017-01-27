@@ -77,5 +77,3 @@ class Initializator
         }
     }
 }
-
-(new Initializator())->init();

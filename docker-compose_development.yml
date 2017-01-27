@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./config/docker/certs:/etc/nginx/certs
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile_development
+    volumes:
+      - ".:/var/www"
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=images.uala.dev
