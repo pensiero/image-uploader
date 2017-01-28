@@ -15,7 +15,6 @@ class Initializator
      * Read an image
      *
      * @return array
-     * @throws NotProvidedException
      */
     private function read()
     {
@@ -23,7 +22,9 @@ class Initializator
 
         // id is required
         if (!$id) {
-            throw new NotProvidedException('ID must be provided in order to get an image path');
+            return [
+                'ping' => 'pong',
+            ];
         }
 
         $width = filter_input(INPUT_GET, 'width', FILTER_SANITIZE_NUMBER_INT) ?: null;
