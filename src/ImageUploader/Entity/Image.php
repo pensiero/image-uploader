@@ -27,16 +27,12 @@ class Image
     {
         // check if the passed source is an url or not
         if (filter_var($source, FILTER_VALIDATE_URL)) {
-            if (RemoteFile::checkIfExists($source)) {
-                $source = file_get_contents($source);
-            }
-            else {
+            if (!RemoteFile::checkIfExists($source)) {
                 throw new NotFoundException("Image not found");
             }
         }
 
-        $this->image = new \Imagick();
-        $this->image->readImageBlob($source);
+        $this->image = new \Imagick($source);
     }
 
     /**
@@ -133,5 +129,13 @@ class Image
     public function getImage()
     {
         return $this->image;
+    }
+
+    /**
+     * @param SaveHandlerInterface $saveHandler
+     */
+    public function setSaveHandler($saveHandler)
+    {
+        $this->saveHandler = $saveHandler;
     }
 }

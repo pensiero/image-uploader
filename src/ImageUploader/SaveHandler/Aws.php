@@ -1,9 +1,9 @@
 <?php
 namespace ImageUploader\SaveHandler;
+
 use Aws\S3\S3Client;
 use ImageUploader\Exception\NotFoundException;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
-use League\Flysystem\Filesystem;
 
 class Aws implements SaveHandlerInterface
 {

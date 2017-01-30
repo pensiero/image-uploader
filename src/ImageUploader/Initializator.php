@@ -3,6 +3,7 @@ namespace ImageUploader;
 
 use ImageUploader\Entity\Image;
 use ImageUploader\Exception\NotProvidedException;
+use ImageUploader\SaveHandler\Aws;
 
 class Initializator
 {
@@ -39,6 +40,9 @@ class Initializator
     private function create()
     {
         $source = filter_input(INPUT_POST, 'source');
+        if (!empty($_FILES)) {
+            $source = $_FILES['source']['tmp_name'];
+        }
 
         // id is required
         if (!$source) {
@@ -66,6 +70,7 @@ class Initializator
     {
         // init the Image entity
         $this->image = new Image();
+        $this->image->setSaveHandler(new Aws());
 
         // read request
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -73,7 +78,7 @@ class Initializator
         }
 
         // create request
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->echoResponse($this->create());
         }
     }
