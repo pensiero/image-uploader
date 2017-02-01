@@ -3,7 +3,7 @@ namespace ImageUploader;
 
 use ImageUploader\Entity\Image;
 use ImageUploader\Exception\NotProvidedException;
-use ImageUploader\SaveHandler\Aws;
+use ImageUploader\SaveHandler\Filesystem;
 
 class Initializator
 {
@@ -11,6 +11,14 @@ class Initializator
      * @var Image
      */
     private $image;
+
+    /**
+     * Initializator constructor.
+     */
+    public function __construct()
+    {
+        $this->image = new Image();
+    }
 
     /**
      * Read an image
@@ -21,13 +29,14 @@ class Initializator
     {
         $id = filter_input(INPUT_GET, 'id');
 
-        // id is required
+        // if id is not provided, play ping pong
         if (!$id) {
             return [
                 'ping' => 'pong',
             ];
         }
 
+        // width and height
         $width = filter_input(INPUT_GET, 'width', FILTER_SANITIZE_NUMBER_INT) ?: null;
         $height = filter_input(INPUT_GET, 'height', FILTER_SANITIZE_NUMBER_INT) ?: null;
 
@@ -49,7 +58,11 @@ class Initializator
             throw new NotProvidedException('SOURCE must be provided in order to get an image path');
         }
 
-        return $this->image->upload($source);
+        // width and height
+        $width = filter_input(INPUT_POST, 'width', FILTER_SANITIZE_NUMBER_INT) ?: null;
+        $height = filter_input(INPUT_POST, 'height', FILTER_SANITIZE_NUMBER_INT) ?: null;
+
+        return $this->image->upload($source, $width, $height);
     }
 
     /**
@@ -69,8 +82,10 @@ class Initializator
     public function init()
     {
         // init the Image entity
-        $this->image = new Image();
-        $this->image->setSaveHandler(new Aws());
+        $this->image->setSaveHandler(new Filesystem());
+
+        //die(var_dump(1, $this->image->read('58920a94b8d286_75951619')));
+        //die(var_dump($this->image->upload('https://i.ytimg.com/vi/tntOCGkgt98/maxresdefault.jpg', 0, 500)));
 
         // read request
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {

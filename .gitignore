@@ -9,6 +9,5 @@
 composer.phar
 log/
 node_modules/
-vendor/*
-.idea/*
+vendor/
 .env

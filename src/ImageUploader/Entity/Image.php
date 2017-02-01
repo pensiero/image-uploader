@@ -1,6 +1,7 @@
 <?php
 namespace ImageUploader\Entity;
 
+use ImageUploader\Exception\FlowException;
 use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\Exception\NotFoundException;
 use ImageUploader\SaveHandler\SaveHandlerInterface;
@@ -8,6 +9,16 @@ use ImageUploader\Util\RemoteFile;
 
 class Image
 {
+    const QUALITY = 90;
+
+    const MAX_SIZE = 10240; // Kb
+
+    const MAX_WIDTH = 4096; // Kb
+
+    const MAX_HEIGHT = 4096; // Kb
+
+    const OPTIMIZE = true;
+
     /**
      * @var SaveHandlerInterface
      */
@@ -19,8 +30,11 @@ class Image
     protected $image;
 
     /**
+     * Create the Imagick object
+     *
      * @param string $source
      *
+     * @throws FlowException
      * @throws NotFoundException
      */
     private function create($source)
@@ -33,6 +47,51 @@ class Image
         }
 
         $this->image = new \Imagick($source);
+
+        if ($this->image->getImageLength() > self::MAX_SIZE * 1000) {
+            throw new FlowException('Maximum allowed filesize of ' . self::MAX_SIZE . 'KB exceeded');
+        }
+
+        // remove exif informations (optimization)
+        if (self::OPTIMIZE) {
+            $this->image->stripImage();
+        }
+
+        // resize image if greater than maximum dimension allowed
+        if ($this->image->getImageWidth() > self::MAX_WIDTH || $this->image->getImageHeight() > self::MAX_HEIGHT) {
+            $this->image->scaleImage(self::MAX_WIDTH, self::MAX_HEIGHT, true);
+        }
+    }
+
+    /**
+     * Resize a single image
+     *
+     * @param \Imagick $image
+     * @param int      $width
+     * @param int      $height
+     *
+     * @return \Imagick
+     */
+    private function scaleSingleImage($image, $width, $height)
+    {
+        $imageWidth = $image->getImageWidth();
+        $imageHeight = $image->getImageHeight();
+
+        if (!$width && $height) {
+            $width = ($imageWidth / $imageHeight) * $height;
+        }
+        else if ($width && !$height) {
+            $height = $width / ($imageWidth / $imageHeight);
+        }
+
+        // do not resize if the images is smaller then the needed scale
+        if ($imageWidth <= $width && $imageHeight <= $height) {
+            return $image;
+        }
+
+        $image->scaleImage($width, $height, false);
+
+        return $image;
     }
 
     /**
@@ -50,10 +109,7 @@ class Image
             throw new NotProvidedException('Image must be created in order to resize it');
         }
 
-        // TODO image resize
-        $image = $this->image;
-
-        return $image;
+        return $this->scaleSingleImage($this->image, $width, $height);
     }
 
     /**
@@ -71,8 +127,26 @@ class Image
     {
         // if image is not present, create it from source
         if ($this->image === null) {
-            $this->create($source);
+            try {
+                $this->create($source);
+            }
+            catch (FlowException $e) {
+                return [
+                    'status_code' => 422,
+                    'message'     => $e->getMessage(),
+                ];
+            }
+            catch (NotFoundException $e) {
+                return [
+                    'status_code' => 404,
+                    'message'     => $e->getMessage(),
+                ];
+            }
         }
+
+        // null width and height if empty
+        $width = !empty($width) ? $width : null;
+        $height = !empty($height) ? $height : null;
 
         // use the original image or resize it
         $image = $width === null && $height === null
@@ -105,6 +179,10 @@ class Image
         if ($this->saveHandler === null) {
             throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
         }
+
+        // null width and height if empty
+        $width = !empty($width) ? $width : null;
+        $height = !empty($height) ? $height : null;
 
         // search the image with the specified params
         $imagePath = $this->saveHandler->read($id, $width, $height);
