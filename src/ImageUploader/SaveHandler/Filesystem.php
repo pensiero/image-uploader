@@ -186,6 +186,7 @@ class Filesystem implements SaveHandlerInterface
             throw new NotFoundException();
         }
 
+        // very important, set the id of the save handler as the current one generated from decryption
         $this->id = $id;
 
         return true;
