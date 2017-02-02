@@ -6,6 +6,7 @@ use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\Exception\NotFoundException;
 use ImageUploader\SaveHandler\SaveHandlerInterface;
 use ImageUploader\Util\RemoteFile;
+use ImageUploader\Util\Image as ImageUtil;
 
 class Image
 {
@@ -64,37 +65,6 @@ class Image
     }
 
     /**
-     * Resize a single image
-     *
-     * @param \Imagick $image
-     * @param int      $width
-     * @param int      $height
-     *
-     * @return \Imagick
-     */
-    private function scaleSingleImage($image, $width, $height)
-    {
-        $imageWidth = $image->getImageWidth();
-        $imageHeight = $image->getImageHeight();
-
-        if (!$width && $height) {
-            $width = ($imageWidth / $imageHeight) * $height;
-        }
-        else if ($width && !$height) {
-            $height = $width / ($imageWidth / $imageHeight);
-        }
-
-        // do not resize if the images is smaller then the needed scale
-        if ($imageWidth <= $width && $imageHeight <= $height) {
-            return $image;
-        }
-
-        $image->scaleImage($width, $height, false);
-
-        return $image;
-    }
-
-    /**
      * Resize the current saved image
      *
      * @param int $width
@@ -109,7 +79,19 @@ class Image
             throw new NotProvidedException('Image must be created in order to resize it');
         }
 
-        return $this->scaleSingleImage($this->image, $width, $height);
+        return ImageUtil::scaleSingleImage($this->image, $width, $height);
+    }
+
+    private function info($width, $height)
+    {
+        return [
+            'status_code' => 200,
+            'id'          => $this->saveHandler->getId(),
+            'path'        => $this->saveHandler->getPath(),
+            'width'       => $width,
+            'height'      => $height,
+            'optimized'   => self::OPTIMIZE,
+        ];
     }
 
     /**
@@ -159,14 +141,16 @@ class Image
         }
 
         // save the image
-        return $this->saveHandler->save($image, $width, $height);
+        if ($this->saveHandler->save($image, $width, $height)) {
+            return $this->info($width, $height);
+        }
     }
 
     /**
-     * Return the path of an image, passing its id
+     * Return the path of an image, passing its filename
      * If specified width and height, check if there is or eventually create it
      *
-     * @param string $id
+     * @param string   $filename
      * @param int|null $width
      * @param int|null $height
      *
@@ -174,7 +158,7 @@ class Image
      * @throws NotFoundException
      * @throws NotProvidedException
      */
-    public function read($id, $width = null, $height = null)
+    public function read($filename, $width = null, $height = null)
     {
         if ($this->saveHandler === null) {
             throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
@@ -185,20 +169,28 @@ class Image
         $height = !empty($height) ? $height : null;
 
         // search the image with the specified params
-        $imagePath = $this->saveHandler->read($id, $width, $height);
-        if ($imagePath) {
-            return $imagePath;
+        try {
+            // when we read from the savehandler, the id of the image is setted
+            $this->saveHandler->read($filename, $width, $height);
+        }
+        catch (NotFoundException $e) {
+
+            // if not found and there are no params, return 404
+            if ($width === null && $height === null) {
+                return [
+                    'status_code' => 404,
+                    'message'     => 'Image not found',
+                ];
+            }
+
+            // find the image with the uniq identifier
+            $this->read($filename);
+
+            // upload the new thumbnail
+            return $this->upload($this->saveHandler->getPath($width, $height), $width, $height);
         }
 
-        // if not found and there are no params (original requested), throw exception
-        if ($width !== null && $height !== null) {
-            throw new NotFoundException('No image found in the save handler');
-        }
-
-        // return the image path of the original image
-        $imagePath = $this->read($id);
-
-        return $this->upload($imagePath, $width, $height);
+        return $this->info($width, $height);
     }
 
     /**

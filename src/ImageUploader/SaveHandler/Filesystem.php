@@ -1,6 +1,8 @@
 <?php
 namespace ImageUploader\SaveHandler;
 
+use ImageUploader\Exception\NotFoundException;
+use ImageUploader\Util\Crypt;
 use ImageUploader\Util\Request;
 
 class Filesystem implements SaveHandlerInterface
@@ -38,7 +40,7 @@ class Filesystem implements SaveHandlerInterface
      *
      * @return string
      */
-    private function getDirsPath($id, $dir)
+    private function generateDirsPath($id, $dir)
     {
         // use as id only the integer part (what's after '_') of the uniq id
         $integerId = ltrim(substr($id, strpos($id, '_')), '_');
@@ -47,7 +49,6 @@ class Filesystem implements SaveHandlerInterface
 
         // create directory if not present
         $path = implode('/', array_reverse($parts));
-
 
         if (!file_exists($dir . '/' . $path)) {
             mkdir($dir . '/' . $path . '/', 0777, true);
@@ -64,10 +65,32 @@ class Filesystem implements SaveHandlerInterface
      *
      * @return string
      */
-    private function getFilename($id, $params = [])
+    private function generateFilename($id, $params = [])
     {
+        // merge id with params
+        $data = array_merge([$id], $params);
+
         // the imploded params are useful for the cache of the elaborated image
-        return md5($id . 'oscar' . implode('_', $params)) . '.' . self::FORMAT_DEFAULT;
+        return (new Crypt())->encryptArrayIntoString($data) . '.' . self::FORMAT_DEFAULT;
+    }
+
+    /**
+     * Get id from filname (decrypt it)
+     *
+     * @param $filename
+     *
+     * @return string
+     * @throws NotFoundException
+     */
+    private function generateIdFromFilename($filename)
+    {
+        $data = (new Crypt())->decryptArrayFromString($filename);
+
+        if (!isset($data[0])) {
+            throw new NotFoundException();
+        }
+
+        return $data[0];
     }
 
     /**
@@ -75,6 +98,7 @@ class Filesystem implements SaveHandlerInterface
      *
      * @param string $id
      * @param array  $params
+     * @param bool   $showPublicDirectories
      *
      * @return string
      */
@@ -86,30 +110,36 @@ class Filesystem implements SaveHandlerInterface
 
         $filesystemDirectory = empty($params) ? self::IMAGES_DIR : self::THUMBS_DIR;
 
-        return $dir . '/' . $this->getDirsPath($id, $filesystemDirectory) . '/' . $this->getFilename($id, $params);
+        return $dir . '/' . $this->generateDirsPath($id, $filesystemDirectory) . '/' . $this->generateFilename($id, $params);
     }
 
     /**
-     * Return info about a requested image
+     * ID of the image
      *
-     * @param string   $id
-     * @param null|int $width
-     * @param null|int $height
-     *
-     * @return array
+     * @return string
      */
-    public function info($id, $width = null, $height = null)
+    public function getId()
     {
-        return [
-            'status_code' => 200,
-            'id'          => $id,
-            'path'        => Request::serverUrl() . '/' . $this->getCompletePath($id, [
+        return $this->id;
+    }
+
+    /**
+     * Path of the image
+     *
+     * @param null $width
+     * @param null $height
+     *
+     * @return string
+     */
+    public function getPath($width = null, $height = null)
+    {
+        return
+            Request::serverUrl()
+            . '/'
+            . $this->getCompletePath($this->id, [
                 'width'  => $width,
                 'height' => $height,
-            ], true),
-            'width'       => $width,
-            'height'      => $height,
-        ];
+            ], true);
     }
 
     /**
@@ -119,11 +149,11 @@ class Filesystem implements SaveHandlerInterface
      * @param null|int $width
      * @param null|int $height
      *
-     * @return array
+     * @return bool
      */
     public function save(\Imagick $image, $width = null, $height = null)
     {
-        $image->writeImage(
+        $result = $image->writeImage(
             $this->getCompletePath($this->id, [
                 'width'  => $width,
                 'height' => $height,
@@ -132,30 +162,32 @@ class Filesystem implements SaveHandlerInterface
 
         $image->destroy();
 
-        return $this->info($this->id, $width, $height);
+        return $result;
     }
 
     /**
      * Read the image from the filesystem
      *
-     * @param string $id
+     * @param string   $filename
      * @param null|int $width
      * @param null|int $height
      *
-     * @return array
+     * @return bool
+     * @throws NotFoundException
      */
-    public function read($id, $width = null, $height = null)
+    public function read($filename, $width = null, $height = null)
     {
+        $id = $this->generateIdFromFilename($filename);
+
         if (!file_exists($this->getCompletePath($id, [
             'width'  => $width,
             'height' => $height,
         ]))) {
-            return [
-                'status_code' => 404,
-                'message'     => 'File not found',
-            ];
+            throw new NotFoundException();
         }
 
-        return $this->info($id, $width, $height);
+        $this->id = $id;
+
+        return true;
     }
 }
