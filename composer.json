@@ -1,7 +1,7 @@
 {
-  "name": "uala/image-uploader",
+  "name": "pensiero/image-uploader",
   "description": "Image uploader and resizer",
-  "homepage": "https://image.uala.it/",
+  "homepage": "https://github.com/pensiero/image-uploader",
   "license": "BSD-3-Clause",
   "authors": [
     {
@@ -22,7 +22,7 @@
     "php": ">=7.0",
     "ext-imagick": "*",
     "zendframework/zend-crypt": "3.*",
-    "league/flysystem-aws-s3-v3": "^1.0"
+    "league/flysystem-aws-s3-v3": "^1.0",
   },
   "autoload": {
     "psr-0": {
