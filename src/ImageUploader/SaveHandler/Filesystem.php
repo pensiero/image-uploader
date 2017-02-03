@@ -68,10 +68,11 @@ class Filesystem implements SaveHandlerInterface
     private function generateFilename($id, $params = [])
     {
         // merge id with params
-        $data = array_merge([$id], $params);
+        $data = array_merge(['id' => $id], $params);
 
         // the imploded params are useful for the cache of the elaborated image
-        return (new Crypt())->encryptArrayIntoString($data) . '.' . self::FORMAT_DEFAULT;
+        //return (new Crypt())->encryptArrayIntoString($data) . '.' . self::FORMAT_DEFAULT;
+        return implode('-', $data) . '.' . self::FORMAT_DEFAULT;
     }
 
     /**
@@ -84,7 +85,8 @@ class Filesystem implements SaveHandlerInterface
      */
     private function generateIdFromFilename($filename)
     {
-        $data = (new Crypt())->decryptArrayFromString($filename);
+        //$data = (new Crypt())->decryptArrayFromString($filename);
+        $data = (explode('-', $filename));
 
         if (!isset($data[0])) {
             throw new NotFoundException();

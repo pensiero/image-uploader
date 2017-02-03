@@ -87,7 +87,7 @@ class Image
         return [
             'status_code' => 200,
             'id'          => $this->saveHandler->getId(),
-            'path'        => $this->saveHandler->getPath(),
+            'path'        => $this->saveHandler->getPath($width, $height),
             'width'       => $width,
             'height'      => $height,
             'optimized'   => self::OPTIMIZE,
