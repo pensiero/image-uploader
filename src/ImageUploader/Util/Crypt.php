@@ -7,6 +7,16 @@ use Zend\Crypt\Symmetric\Mcrypt;
 
 class Crypt
 {
+    private function base64urlEncodeClean($data)
+    {
+        return rtrim(strtr($data, '+/', '-_'), '=');
+    }
+
+    private function base64urlDecodeClean($data, $strict = false)
+    {
+        return str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT);
+    }
+
     /**
      * @var BlockCipher
      */
@@ -36,7 +46,7 @@ class Crypt
             throw new \Exception('String can\'t be empty in order to encrypt it');
         }
 
-        return $this->blockCipher->encrypt($string);
+        return $this->base64urlEncodeClean($this->blockCipher->encrypt($string));
     }
 
     /**
@@ -53,7 +63,7 @@ class Crypt
             throw new \Exception('String can\'t be empty in order to decrypt it');
         }
 
-        return $this->blockCipher->decrypt($string);
+        return $this->blockCipher->decrypt($this->base64urlDecodeClean($string));
     }
 
     /**

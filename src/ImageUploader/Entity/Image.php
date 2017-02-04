@@ -7,6 +7,7 @@ use ImageUploader\Exception\NotFoundException;
 use ImageUploader\SaveHandler\SaveHandlerInterface;
 use ImageUploader\Util\RemoteFile;
 use ImageUploader\Util\Image as ImageUtil;
+use ImageUploader\Util\Request;
 
 class Image
 {
@@ -82,8 +83,16 @@ class Image
         return ImageUtil::scaleSingleImage($this->image, $width, $height);
     }
 
-    private function info($width, $height)
+    private function info($width = null, $height = null)
     {
+        die(var_dump([
+            'status_code' => 200,
+            'id'          => $this->saveHandler->getId(),
+            'path'        => $this->saveHandler->getPath($width, $height),
+            'width'       => $width,
+            'height'      => $height,
+            'optimized'   => self::OPTIMIZE,
+        ]));
         return [
             'status_code' => 200,
             'id'          => $this->saveHandler->getId(),
@@ -130,7 +139,7 @@ class Image
         $width = !empty($width) ? $width : null;
         $height = !empty($height) ? $height : null;
 
-        // use the original image or resize it
+        // use the original image or resize it before uploading
         $image = $width === null && $height === null
             ? $this->image
             : $this->resize($width, $height);
@@ -140,17 +149,22 @@ class Image
             throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
         }
 
-        // save the image
-        if ($this->saveHandler->save($image, $width, $height)) {
-            return $this->info($width, $height);
+        // save the image (params should not to be passed, we are dealing with the original image that will be used for future resizes)
+        if (!$this->saveHandler->save($image)) {
+            return [
+                'status_code' => 500,
+                'message'     => 'Error while uploading the image',
+            ];
         }
+
+        return $this->info();
     }
 
     /**
      * Return the path of an image, passing its filename
      * If specified width and height, check if there is or eventually create it
      *
-     * @param string   $filename
+     * @param string   $path
      * @param int|null $width
      * @param int|null $height
      *
@@ -158,11 +172,14 @@ class Image
      * @throws NotFoundException
      * @throws NotProvidedException
      */
-    public function read($filename, $width = null, $height = null)
+    public function read($path, $width = null, $height = null)
     {
         if ($this->saveHandler === null) {
             throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
         }
+
+        // elaborate the path
+        $path = $this->saveHandler->elaboratePublicPath($path);
 
         // null width and height if empty
         $width = !empty($width) ? $width : null;
@@ -171,7 +188,7 @@ class Image
         // search the image with the specified params
         try {
             // when we read from the savehandler, the id of the image is setted
-            $this->saveHandler->read($filename, $width, $height);
+            $this->saveHandler->read($path, $width, $height);
         }
         catch (NotFoundException $e) {
 
@@ -183,11 +200,40 @@ class Image
                 ];
             }
 
-            // find the image with the uniq identifier
-            $this->read($filename);
+            // create the Imagick entity from the image path
+            try {
+                $this->create($path);
+            }
+            catch (FlowException $e) {
+                return [
+                    'status_code' => 422,
+                    'message'     => $e->getMessage(),
+                ];
+            }
+            catch (NotFoundException $e) {
+                return [
+                    'status_code' => 404,
+                    'message'     => $e->getMessage(),
+                ];
+            }
 
-            // upload the new thumbnail
-            return $this->upload($this->saveHandler->getPath($width, $height), $width, $height);
+            // resize the image
+            $image = $this->resize($width, $height);
+
+            // save the image (params should not to be passed, we are dealing with the original image that will be used for future resizes)
+            if (!$this->saveHandler->save($image, $width, $height)) {
+                return [
+                    'status_code' => 500,
+                    'message'     => 'Error while uploading the resizing image',
+                ];
+            }
+        }
+        catch (FlowException $e) {
+            return [
+                'status_code' => 500,
+                'message'     => 'Hey men! I accept only images saved by me in the past! Gimme the correct url :/',
+            ];
+
         }
 
         return $this->info($width, $height);

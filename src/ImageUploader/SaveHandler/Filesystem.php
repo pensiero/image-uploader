@@ -1,8 +1,9 @@
 <?php
 namespace ImageUploader\SaveHandler;
 
+use ImageUploader\Exception\FlowException;
 use ImageUploader\Exception\NotFoundException;
-use ImageUploader\Util\Crypt;
+use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\Util\Request;
 
 class Filesystem implements SaveHandlerInterface
@@ -24,98 +25,6 @@ class Filesystem implements SaveHandlerInterface
     protected $id;
 
     /**
-     * Filesystem constructor
-     */
-    public function __construct()
-    {
-        // generate a random string as unique id
-        $this->id = str_replace('.', '_', uniqid('', true));
-    }
-
-    /**
-     * Return path with format 1/2/3/4/1234.jpg (where 1234 it's the id of the image)
-     *
-     * @param string $id
-     * @param string $dir
-     *
-     * @return string
-     */
-    private function generateDirsPath($id, $dir)
-    {
-        // use as id only the integer part (what's after '_') of the uniq id
-        $integerId = ltrim(substr($id, strpos($id, '_')), '_');
-
-        $parts = array_map('intval', str_split($integerId));
-
-        // create directory if not present
-        $path = implode('/', array_reverse($parts));
-
-        if (!file_exists($dir . '/' . $path)) {
-            mkdir($dir . '/' . $path . '/', 0777, true);
-        }
-
-        return $path;
-    }
-
-    /**
-     * Generate the file name of the image basing on id and params
-     *
-     * @param string $id
-     * @param array  $params
-     *
-     * @return string
-     */
-    private function generateFilename($id, $params = [])
-    {
-        // merge id with params
-        $data = array_merge(['id' => $id], $params);
-
-        // the imploded params are useful for the cache of the elaborated image
-        //return (new Crypt())->encryptArrayIntoString($data) . '.' . self::FORMAT_DEFAULT;
-        return implode('-', $data) . '.' . self::FORMAT_DEFAULT;
-    }
-
-    /**
-     * Get id from filname (decrypt it)
-     *
-     * @param $filename
-     *
-     * @return string
-     * @throws NotFoundException
-     */
-    private function generateIdFromFilename($filename)
-    {
-        //$data = (new Crypt())->decryptArrayFromString($filename);
-        $data = (explode('-', $filename));
-
-        if (!isset($data[0])) {
-            throw new NotFoundException();
-        }
-
-        return $data[0];
-    }
-
-    /**
-     * Complete path of the image
-     *
-     * @param string $id
-     * @param array  $params
-     * @param bool   $showPublicDirectories
-     *
-     * @return string
-     */
-    private function getCompletePath($id, $params = [], $showPublicDirectories = false)
-    {
-        $dir = !$showPublicDirectories
-            ? (empty($params) ? self::IMAGES_DIR : self::THUMBS_DIR)
-            : (empty($params) ? self::IMAGES_DIR_PUBLIC : self::THUMBS_DIR_PUBLIC);
-
-        $filesystemDirectory = empty($params) ? self::IMAGES_DIR : self::THUMBS_DIR;
-
-        return $dir . '/' . $this->generateDirsPath($id, $filesystemDirectory) . '/' . $this->generateFilename($id, $params);
-    }
-
-    /**
      * ID of the image
      *
      * @return string
@@ -132,9 +41,14 @@ class Filesystem implements SaveHandlerInterface
      * @param null $height
      *
      * @return string
+     * @throws FlowException
      */
     public function getPath($width = null, $height = null)
     {
+        if (!$this->id) {
+            throw new FlowException('ID must be initialized in order to get the image path');
+        }
+
         return
             Request::serverUrl()
             . '/'
@@ -145,6 +59,150 @@ class Filesystem implements SaveHandlerInterface
     }
 
     /**
+     * Manipulate path passed from the user
+     *
+     * @param $path
+     *
+     * @return string
+     */
+    public function elaboratePublicPath($path)
+    {
+        // strip server url from path (in case it's local, transofrm the absolute path to a relative one)
+        $path = str_replace(Request::serverUrl(), "", $path);
+
+        $oldArray = ['/' . self::IMAGES_DIR_PUBLIC . '/', '/' . self::THUMBS_DIR_PUBLIC . '/'];
+        $newArray = [self::IMAGES_DIR . '/', self::THUMBS_DIR . '/'];
+
+        return str_replace($oldArray, $newArray, $path);
+    }
+
+    /**
+     * Generate a random string as unique id
+     *
+     * @return string
+     */
+    private function generateId()
+    {
+        $this->id = str_replace('.', '-', uniqid('', true));
+
+        return $this->id;
+    }
+
+    /**
+     * Attach the passed params to the id in order to generate the filename
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    private function generateFilename($id, $params = [])
+    {
+        $paramsString = '';
+
+        if (!empty($params)) {
+
+            // replace null values with zero
+            $params = array_map(function($param) {
+                return empty($param) ? 0 : $param;
+            }, $params);
+
+            $paramsString = '_' . implode($params, '_');
+        }
+
+        // concatenate id, params and extension
+        return $id . $paramsString . '.' . self::FORMAT_DEFAULT;
+    }
+
+    /**
+     * Return path with format 1/2/3/4/1234.jpg (where 1234 it's the id of the image)
+     *
+     * @param string $id
+     * @param string $dir
+     *
+     * @return string
+     * @throws FlowException
+     */
+    private function generateDirsPath($id, $dir)
+    {
+        // find the integer part inside the id
+        preg_match('/(.*)-(\d+)(.*)/', $id, $matches);
+        if (!isset($matches[2])) {
+            throw new FlowException('Integer part of the image ID not found');
+        }
+
+        $integerPart = $matches[2];
+
+        // split the integer part into an array of numbers
+        $parts = array_map('intval', str_split($integerPart));
+
+        // create directory if not present
+        $path = implode('/', array_reverse($parts));
+
+        if (!file_exists($dir . '/' . $path)) {
+            mkdir($dir . '/' . $path . '/', 0777, true);
+        }
+
+        return $path;
+    }
+
+    /**
+     * Image is considered "original" if there are only empty params
+     *
+     * @param $params
+     *
+     * @return bool
+     */
+    private function imageIsOriginal($params)
+    {
+        return empty(array_filter($params, function($param) {
+            return !empty($param);
+        }));
+    }
+
+    /**
+     * Analyze the image path and recover the original ID of the image
+     *
+     * @param $path
+     *
+     * @return string
+     * @throws FlowException
+     */
+    private function generateIdFromPath($path)
+    {
+        preg_match('/data\/(images|thumbs)\/(.*)\/(.*-\d+)_(.*)\.(.*)/', $path, $matches);
+
+        if (!isset($matches[3])) {
+            throw new FlowException('Image ID not found inside the string');
+        }
+
+        return $matches[3];
+    }
+
+    /**
+     * Complete path of the image
+     *
+     * @param string $id
+     * @param array  $params
+     * @param bool   $showPublicDirectories
+     *
+     * @return string
+     */
+    private function getCompletePath($id = null, $params = [], $showPublicDirectories = false)
+    {
+        if ($id === null) {
+            $id = $this->generateId();
+        }
+
+        $dir = !$showPublicDirectories
+            ? ($this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR)
+            : ($this->imageIsOriginal($params) ? self::IMAGES_DIR_PUBLIC : self::THUMBS_DIR_PUBLIC);
+
+        $filesystemDirectory = $this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR;
+
+        return $dir . '/' . $this->generateDirsPath($id, $filesystemDirectory) . '/' . $this->generateFilename($id, $params);
+    }
+
+    /**
      * Write the image on the filesystem
      *
      * @param \Imagick $image
@@ -152,15 +210,21 @@ class Filesystem implements SaveHandlerInterface
      * @param null|int $height
      *
      * @return bool
+     * @throws NotProvidedException
      */
     public function save(\Imagick $image, $width = null, $height = null)
     {
-        $result = $image->writeImage(
-            $this->getCompletePath($this->id, [
-                'width'  => $width,
-                'height' => $height,
-            ])
-        );
+        // if width or height are provided, ID is required and cannot be null
+        if (($width !== null || $height !== null) && $this->id == null) {
+            throw new NotProvidedException('ID must be provided in order to resize an existent image');
+        }
+
+        $path = $this->getCompletePath($this->id, [
+            'width'  => $width,
+            'height' => $height,
+        ]);
+
+        $result = $image->writeImage($path);
 
         $image->destroy();
 
@@ -170,26 +234,24 @@ class Filesystem implements SaveHandlerInterface
     /**
      * Read the image from the filesystem
      *
-     * @param string   $filename
+     * @param string   $path
      * @param null|int $width
      * @param null|int $height
      *
      * @return bool
      * @throws NotFoundException
      */
-    public function read($filename, $width = null, $height = null)
+    public function read($path, $width = null, $height = null)
     {
-        $id = $this->generateIdFromFilename($filename);
+        // generate id based on filepath and set the id as the current one
+        $this->id = $this->generateIdFromPath($path);
 
-        if (!file_exists($this->getCompletePath($id, [
+        if (!file_exists($this->getCompletePath($this->id, [
             'width'  => $width,
             'height' => $height,
         ]))) {
             throw new NotFoundException();
         }
-
-        // very important, set the id of the save handler as the current one generated from decryption
-        $this->id = $id;
 
         return true;
     }

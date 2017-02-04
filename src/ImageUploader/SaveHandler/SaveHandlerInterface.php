@@ -26,6 +26,15 @@ interface SaveHandlerInterface
     public function getPath($width = null, $height = null);
 
     /**
+     * Manipulate the path passed from the user
+     *
+     * @param $path
+     *
+     * @return string
+     */
+    public function elaboratePublicPath($path);
+
+    /**
      * Upload the imagick object (and eventually take in consideration that is a resized one if width and height are provided)
      * Return an info array
      *

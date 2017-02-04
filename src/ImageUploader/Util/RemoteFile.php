@@ -5,9 +5,19 @@ class RemoteFile
 {
     public static function checkIfExists($url)
     {
+        // external check
         if (strpos($url, 'http') !== false) {
-            return !(false === @file_get_contents($url));
-        } else {
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            return $code == 200;
+        }
+        // internal check
+        else {
             return file_exists(ltrim($url, '/'));
         }
     }
