@@ -85,14 +85,6 @@ class Image
 
     private function info($width = null, $height = null)
     {
-        die(var_dump([
-            'status_code' => 200,
-            'id'          => $this->saveHandler->getId(),
-            'path'        => $this->saveHandler->getPath($width, $height),
-            'width'       => $width,
-            'height'      => $height,
-            'optimized'   => self::OPTIMIZE,
-        ]));
         return [
             'status_code' => 200,
             'id'          => $this->saveHandler->getId(),
