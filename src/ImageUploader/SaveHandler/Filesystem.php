@@ -12,9 +12,8 @@ class Filesystem implements SaveHandlerInterface
     const IMAGES_DIR = 'data/images';
     const THUMBS_DIR = 'data/thumbs';
 
-    // public directories
-    const IMAGES_DIR_PUBLIC = 'i';
-    const THUMBS_DIR_PUBLIC = 't';
+    // public directory
+    const PUBLIC_DIR = 'i';
 
     // default image format
     const FORMAT_DEFAULT = 'jpg';
@@ -201,7 +200,7 @@ class Filesystem implements SaveHandlerInterface
 
         // directory
         $parts[] = $public
-            ? ($this->imageIsOriginal($params) ? self::IMAGES_DIR_PUBLIC : self::THUMBS_DIR_PUBLIC)
+            ? self::PUBLIC_DIR
             : ($this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR);
 
         if (!$public) {
