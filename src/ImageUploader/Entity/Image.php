@@ -89,6 +89,7 @@ class Image
             'status_code' => 200,
             'id'          => $this->saveHandler->getId(),
             'path'        => $this->saveHandler->getPath($width, $height),
+            'local_path'  => $this->saveHandler->getLocalPath($width, $height),
             'width'       => $width,
             'height'      => $height,
             'optimized'   => self::OPTIMIZE,
@@ -153,10 +154,10 @@ class Image
     }
 
     /**
-     * Return the path of an image, passing its filename
+     * Return the path of an image, passing its id
      * If specified width and height, check if there is or eventually create it
      *
-     * @param string   $path
+     * @param string   $id
      * @param int|null $width
      * @param int|null $height
      *
@@ -164,14 +165,11 @@ class Image
      * @throws NotFoundException
      * @throws NotProvidedException
      */
-    public function read($path, $width = null, $height = null)
+    public function read($id, $width = null, $height = null)
     {
         if ($this->saveHandler === null) {
             throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
         }
-
-        // elaborate the path
-        $path = $this->saveHandler->elaboratePublicPath($path);
 
         // null width and height if empty
         $width = !empty($width) ? $width : null;
@@ -180,7 +178,7 @@ class Image
         // search the image with the specified params
         try {
             // when we read from the savehandler, the id of the image is setted
-            $this->saveHandler->read($path, $width, $height);
+            $this->saveHandler->read($id, $width, $height);
         }
         catch (NotFoundException $e) {
 
@@ -194,7 +192,7 @@ class Image
 
             // create the Imagick entity from the image path
             try {
-                $this->create(ltrim($path, '/'));
+                $this->create($this->saveHandler->getLocalPath());
             }
             catch (FlowException $e) {
                 return [

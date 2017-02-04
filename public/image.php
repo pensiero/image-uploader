@@ -18,4 +18,4 @@ if (php_sapi_name() === 'cli-server') {
 // Composer autoloading
 require_once __DIR__ . '/../vendor/autoload.php';
 
-(new \ImageUploader\Controller\Api())->init();
+(new \ImageUploader\Controller\Expose())->init();

@@ -35,7 +35,7 @@ class Filesystem implements SaveHandlerInterface
     }
 
     /**
-     * Path of the image
+     * Public path of the image
      *
      * @param null $width
      * @param null $height
@@ -59,21 +59,25 @@ class Filesystem implements SaveHandlerInterface
     }
 
     /**
-     * Manipulate path passed from the user
+     * Local path of the image
      *
-     * @param $path
+     * @param null $width
+     * @param null $height
      *
      * @return string
+     * @throws FlowException
      */
-    public function elaboratePublicPath($path)
+    public function getLocalPath($width = null, $height = null)
     {
-        // strip server url from path (in case it's local, transofrm the absolute path to a relative one)
-        $path = str_replace(Request::serverUrl(), "", $path);
+        if (!$this->id) {
+            throw new FlowException('ID must be initialized in order to get the image path');
+        }
 
-        $oldArray = ['/' . self::IMAGES_DIR_PUBLIC . '/', '/' . self::THUMBS_DIR_PUBLIC . '/'];
-        $newArray = ['/' . self::IMAGES_DIR . '/', '/' . self::THUMBS_DIR . '/'];
-
-        return str_replace($oldArray, $newArray, $path);
+        return
+            $this->getCompletePath($this->id, [
+                'width'  => $width,
+                'height' => $height,
+            ]);
     }
 
     /**
@@ -232,19 +236,19 @@ class Filesystem implements SaveHandlerInterface
     }
 
     /**
-     * Read the image from the filesystem
+     * Read image from the current defined ID
      *
-     * @param string   $path
-     * @param null|int $width
-     * @param null|int $height
+     * @param string $id
+     * @param null   $width
+     * @param null   $height
      *
      * @return bool
      * @throws NotFoundException
      */
-    public function read($path, $width = null, $height = null)
+    public function read($id, $width = null, $height = null)
     {
         // generate id based on filepath and set the id as the current one
-        $this->id = $this->generateIdFromPath($path);
+        $this->id = $id;
 
         if (!file_exists($this->getCompletePath($this->id, [
             'width'  => $width,

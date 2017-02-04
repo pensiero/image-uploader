@@ -1,11 +1,11 @@
 <?php
-namespace ImageUploader;
+namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
 use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\SaveHandler\Filesystem;
 
-class Initializator
+class Api
 {
     /**
      * @var Image
@@ -83,9 +83,6 @@ class Initializator
     {
         // init the Image entity
         $this->image->setSaveHandler(new Filesystem());
-
-        //die(var_dump(1, $this->image->read('58920a94b8d286_75951619')));
-        //die(var_dump($this->image->upload('https://i.ytimg.com/vi/tntOCGkgt98/maxresdefault.jpg', 0, 500)));
 
         // read request
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
