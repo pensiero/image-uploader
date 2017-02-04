@@ -2,7 +2,6 @@
 namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
-use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\SaveHandler\Filesystem;
 
 class Expose

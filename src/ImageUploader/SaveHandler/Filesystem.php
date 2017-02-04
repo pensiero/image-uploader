@@ -187,23 +187,31 @@ class Filesystem implements SaveHandlerInterface
      *
      * @param string $id
      * @param array  $params
-     * @param bool   $showPublicDirectories
+     * @param bool   $public
      *
      * @return string
      */
-    private function getCompletePath($id = null, $params = [], $showPublicDirectories = false)
+    private function getCompletePath($id = null, $params = [], $public = false)
     {
         if ($id === null) {
             $id = $this->generateId();
         }
 
-        $dir = !$showPublicDirectories
-            ? ($this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR)
-            : ($this->imageIsOriginal($params) ? self::IMAGES_DIR_PUBLIC : self::THUMBS_DIR_PUBLIC);
+        $parts = [];
 
-        $filesystemDirectory = $this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR;
+        // directory
+        $parts[] = $public
+            ? ($this->imageIsOriginal($params) ? self::IMAGES_DIR_PUBLIC : self::THUMBS_DIR_PUBLIC)
+            : ($this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR);
 
-        return $dir . '/' . $this->generateDirsPath($id, $filesystemDirectory) . '/' . $this->generateFilename($id, $params);
+        if (!$public) {
+            $filesystemDirectory = $this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR;
+            $parts[] = $this->generateDirsPath($id, $filesystemDirectory);
+        }
+
+        $parts[] = $this->generateFilename($id, $params);
+
+        return implode('/', $parts);
     }
 
     /**
