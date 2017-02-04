@@ -71,7 +71,7 @@ class Filesystem implements SaveHandlerInterface
         $path = str_replace(Request::serverUrl(), "", $path);
 
         $oldArray = ['/' . self::IMAGES_DIR_PUBLIC . '/', '/' . self::THUMBS_DIR_PUBLIC . '/'];
-        $newArray = [self::IMAGES_DIR . '/', self::THUMBS_DIR . '/'];
+        $newArray = ['/' . self::IMAGES_DIR . '/', '/' . self::THUMBS_DIR . '/'];
 
         return str_replace($oldArray, $newArray, $path);
     }
@@ -169,7 +169,7 @@ class Filesystem implements SaveHandlerInterface
      */
     private function generateIdFromPath($path)
     {
-        preg_match('/data\/(images|thumbs)\/(.*)\/(.*-\d+)_(.*)\.(.*)/', $path, $matches);
+        preg_match('/\/data\/(images|thumbs)\/(.*)\/(.*-\d+)_(.*)\.(.*)/', $path, $matches);
 
         if (!isset($matches[3])) {
             throw new FlowException('Image ID not found inside the string');

@@ -194,7 +194,7 @@ class Image
 
             // create the Imagick entity from the image path
             try {
-                $this->create($path);
+                $this->create(ltrim($path, '/'));
             }
             catch (FlowException $e) {
                 return [
