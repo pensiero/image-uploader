@@ -26,6 +26,7 @@ RUN apt-get install -yqq --force-yes \
     apache2 \
     libapache2-mod-php \
     php \
+    php-curl \
     php-dom \
     php-mbstring \
     php-intl \
