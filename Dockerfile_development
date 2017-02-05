@@ -71,8 +71,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy site into place
 COPY . $PROJECT_PATH
 
-# Folder permissions & Add permissions for temp data of mpdf library
+# Folder permissions
+RUN chown -R $APACHE_RUN_USER:$APACHE_RUN_GROUP data/
 RUN chown -R $APACHE_RUN_USER:root logs/
+RUN chown -R $APACHE_RUN_USER:$APACHE_RUN_GROUP public/
 
 # Remove pre-existent apache pid and start apache
 CMD rm -f $APACHE_PID_FILE && /usr/sbin/apache2ctl -D FOREGROUND
