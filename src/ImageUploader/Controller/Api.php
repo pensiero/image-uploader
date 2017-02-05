@@ -60,7 +60,7 @@ class Api
 
         // source is required
         if (!$source) {
-            throw new NotProvidedException('SOURCE must be provided in order to get an image path');
+            throw new NotProvidedException('SOURCE param must be provided in a base64 encoded format (without "new lines") in order to get an image path');
         }
 
         // width and height
