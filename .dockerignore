@@ -7,4 +7,5 @@
 .settings
 composer.phar
 node_modules/
+vendor/
 .env
