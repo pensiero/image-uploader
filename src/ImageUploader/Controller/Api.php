@@ -48,12 +48,17 @@ class Api
      */
     private function create()
     {
-        $source = filter_input(INPUT_POST, 'source');
-        if (!empty($_FILES)) {
-            $source = $_FILES['source']['tmp_name'];
+        if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
+            $data = json_decode(file_get_contents('php://input'), true);
+            $source = $data['source'];
+        }
+        else {
+            $source = !empty($_FILES)
+                ? $_FILES['source']['tmp_name']
+                : filter_input(INPUT_POST, 'source');
         }
 
-        // id is required
+        // source is required
         if (!$source) {
             throw new NotProvidedException('SOURCE must be provided in order to get an image path');
         }
