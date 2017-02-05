@@ -93,13 +93,13 @@ class Image
     private function info($width = null, $height = null)
     {
         return [
-            'status_code' => 200,
-            'id'          => $this->saveHandler->getId(),
-            'path'        => $this->saveHandler->getPath($width, $height),
-            'local_path'  => $this->saveHandler->getLocalPath($width, $height),
-            'width'       => $width,
-            'height'      => $height,
-            'optimized'   => self::OPTIMIZE,
+            'status_code'  => 200,
+            'id'           => $this->saveHandler->getId(),
+            'path'         => $this->saveHandler->getPath($width, $height),
+            'path_dynamic' => $this->saveHandler->getPath('#WIDTH#', '#HEIGHT#'),
+            'width'        => $width,
+            'height'       => $height,
+            'optimized'    => self::OPTIMIZE,
         ];
     }
 
