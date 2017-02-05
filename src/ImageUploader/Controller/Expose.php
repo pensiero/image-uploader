@@ -36,12 +36,16 @@ class Expose
         $height = filter_input(INPUT_GET, 'height', FILTER_SANITIZE_NUMBER_INT) ?: null;
 
         $data = $this->image->read($id, $width, $height);
+        if ($data['status_code'] !== 200) {
+            echo $data['message'];
+            exit();
+        }
 
         header("Content-Type: image/jpeg");
         header("Cache-control: Public");
         header("Expires: " . gmdate("D, d M Y H:i:s", time() + self::HEADER_TIME_OFFSET));
 
-        readfile($data['local_path']);
+        readfile($data['path_local']);
 
         exit();
     }

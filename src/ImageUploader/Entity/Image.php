@@ -96,6 +96,7 @@ class Image
             'status_code'  => 200,
             'id'           => $this->saveHandler->getId(),
             'path'         => $this->saveHandler->getPath($width, $height),
+            'path_local'   => $this->saveHandler->getLocalPath($width, $height),
             'path_dynamic' => $this->saveHandler->getPath('#WIDTH#', '#HEIGHT#'),
             'width'        => $width,
             'height'       => $height,
