@@ -40,14 +40,22 @@ class Image
      */
     private function create($source)
     {
-        // check if the passed source is an url or not
+        // check if the passed source is an url
         if (filter_var($source, FILTER_VALIDATE_URL)) {
             if (!RemoteFile::checkIfExists($source)) {
                 throw new NotFoundException("Image not found");
             }
+
+            // create image from source
+            $this->image = new \Imagick($source);
+        }
+        else {
+
+            // create an Imagick from a base64 string
+            $this->image = new \Imagick();
+            $this->image->readImageBlob(base64_decode($source));
         }
 
-        $this->image = new \Imagick($source);
 
         if ($this->image->getImageLength() > self::MAX_SIZE * 1000) {
             throw new FlowException('Maximum allowed filesize of ' . self::MAX_SIZE . 'KB exceeded');
