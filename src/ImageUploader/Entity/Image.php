@@ -7,7 +7,6 @@ use ImageUploader\Exception\NotFoundException;
 use ImageUploader\SaveHandler\SaveHandlerInterface;
 use ImageUploader\Util\RemoteFile;
 use ImageUploader\Util\Image as ImageUtil;
-use ImageUploader\Util\Request;
 
 class Image
 {
@@ -109,6 +108,11 @@ class Image
      */
     public function upload($source, $width = null, $height = null)
     {
+        // no save handler provided
+        if ($this->saveHandler === null) {
+            throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
+        }
+
         // if image is not present, create it from source
         if ($this->image === null) {
             try {
@@ -136,11 +140,6 @@ class Image
         $image = $width === null && $height === null
             ? $this->image
             : $this->resize($width, $height);
-
-        // no save handler provided
-        if ($this->saveHandler === null) {
-            throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
-        }
 
         // save the image (params should not to be passed, we are dealing with the original image that will be used for future resizes)
         if (!$this->saveHandler->save($image)) {
@@ -175,10 +174,12 @@ class Image
         $width = !empty($width) ? $width : null;
         $height = !empty($height) ? $height : null;
 
+        // force a particular id
+        $this->saveHandler->setId($id);
+
         // search the image with the specified params
         try {
-            // when we read from the savehandler, the id of the image is setted
-            $this->saveHandler->read($id, $width, $height);
+            $this->saveHandler->read($width, $height);
         }
         catch (NotFoundException $e) {
 

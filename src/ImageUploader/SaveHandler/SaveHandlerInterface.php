@@ -16,6 +16,13 @@ interface SaveHandlerInterface
     public function getId();
 
     /**
+     * Set the id of the image
+     *
+     * @param string $id
+     */
+    public function setId($id);
+
+    /**
      * Return the public path of the image
      *
      * @param int|null $width
@@ -40,8 +47,8 @@ interface SaveHandlerInterface
      * Return an info array
      *
      * @param \Imagick $image
-     * @param int|null     $width
-     * @param int|null     $height
+     * @param int|null $width
+     * @param int|null $height
      *
      * @return array
      */
@@ -51,11 +58,10 @@ interface SaveHandlerInterface
      * Read the image
      * Return an info array
      *
-     * @param string   $id
      * @param int|null $width
      * @param int|null $height
      *
      * @return array
      */
-    public function read($id, $width = null, $height = null);
+    public function read($width = null, $height = null);
 }
