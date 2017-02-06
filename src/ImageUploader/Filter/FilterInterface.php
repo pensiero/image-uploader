@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Filter;
 
 interface FilterInterface
@@ -8,5 +8,5 @@ interface FilterInterface
      *
      * @return \Imagick
      */
-    public function filter(\Imagick $image);
+    public function filter(\Imagick $image): \Imagick;
 }

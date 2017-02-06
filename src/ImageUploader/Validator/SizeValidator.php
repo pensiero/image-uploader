@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Validator;
 
 use ImageUploader\Exception\FlowException;
@@ -19,7 +19,7 @@ class SizeValidator implements ValidatorInterface
      * @throws FlowException
      * @throws ValidationException
      */
-    public function validate(\Imagick $image, $width = null, $height = null)
+    public function validate(\Imagick $image, $width = null, $height = null): bool
     {
         // return if there is no MAX_SIZE env var specified
         if (!getenv('MAX_SIZE')) {

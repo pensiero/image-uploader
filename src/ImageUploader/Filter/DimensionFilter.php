@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Filter;
 
 use ImageUploader\Exception\FlowException;
@@ -14,7 +14,7 @@ class DimensionFilter implements FilterInterface
      * @return \Imagick
      * @throws FlowException
      */
-    public function filter(\Imagick $image)
+    public function filter(\Imagick $image): \Imagick
     {
         // return passed image if there is are no MAX_DIMENSIONS env var specified
         if (!getenv('MAX_DIMENSIONS')) {

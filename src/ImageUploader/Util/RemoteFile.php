@@ -1,9 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Util;
 
 class RemoteFile
 {
-    public static function checkIfExists($url)
+    /**
+     * Check if a remote (or eventually local) file exist
+     *
+     * @param string $url
+     *
+     * @return bool
+     */
+    public static function checkIfExists($url): bool
     {
         // external check
         if (strpos($url, 'http') !== false) {
@@ -22,8 +29,16 @@ class RemoteFile
         }
     }
 
-    // size of a remote file
-    public static function calcSize($url, $user = "", $pw = "")
+    /**
+     * Size of a remote file
+     *
+     * @param string $url
+     * @param string $user
+     * @param string $pw
+     *
+     * @return int
+     */
+    public static function calcSize($url, $user = "", $pw = ""): int
     {
         ob_start();
         $ch = curl_init($url);
@@ -43,6 +58,6 @@ class RemoteFile
         $regex = '/Content-Length:\s([0-9].+?)\s/';
         preg_match($regex, $head, $matches);
 
-        return isset($matches[1]) ? $matches[1] : "unknown";
+        return isset($matches[1]) ? (int) $matches[1] : 0;
     }
 }

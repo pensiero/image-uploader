@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
@@ -18,7 +18,7 @@ class Expose
     private $image;
 
     /**
-     * Initializator constructor.
+     * Expose constructor.
      */
     public function __construct()
     {
@@ -49,6 +49,9 @@ class Expose
         ]);
     }
 
+    /**
+     * Expose the image
+     */
     public function init()
     {
         // read request

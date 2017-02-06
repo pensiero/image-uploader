@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Entity;
 
 use ImageUploader\Exception\FlowException;
@@ -82,7 +82,7 @@ class Image
      * @return \Imagick
      * @throws NotProvidedException
      */
-    private function resize($width, $height)
+    private function resize($width, $height): \Imagick
     {
         if ($this->image === null) {
             throw new NotProvidedException('Image must be created in order to resize it');
@@ -104,7 +104,15 @@ class Image
         return $image;
     }
 
-    private function info($width = null, $height = null)
+    /**
+     * Get info about the current image
+     *
+     * @param null $width
+     * @param null $height
+     *
+     * @return array
+     */
+    private function info($width = null, $height = null): array
     {
         return [
             'status_code'  => 200,
@@ -128,7 +136,7 @@ class Image
      * @return array
      * @throws NotProvidedException
      */
-    public function upload($source, $width = null, $height = null)
+    public function upload($source, $width = null, $height = null): array
     {
         // no save handler provided
         if ($this->saveHandler === null) {
@@ -186,7 +194,7 @@ class Image
      * @throws NotFoundException
      * @throws NotProvidedException
      */
-    public function read($id, $width = null, $height = null)
+    public function read($id, $width = null, $height = null): array
     {
         if ($this->saveHandler === null) {
             throw new NotProvidedException('SaveHandler must be provided in order to upload the image somewhere');
@@ -255,7 +263,7 @@ class Image
     /**
      * @return \Imagick
      */
-    public function getImage()
+    public function getImage(): \Imagick
     {
         return $this->image;
     }

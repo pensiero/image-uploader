@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\SaveHandler;
 
 class Aws implements SaveHandlerInterface
@@ -13,22 +13,22 @@ class Aws implements SaveHandlerInterface
         // TODO: Implement setId() method.
     }
 
-    public function getPath($width = null, $height = null)
+    public function getPath($width = null, $height = null): string
     {
         // TODO: Implement getPath() method.
     }
 
-    public function getLocalPath($width = null, $height = null)
+    public function getLocalPath($width = null, $height = null): string
     {
         // TODO: Implement getLocalPath() method.
     }
 
-    public function save(\Imagick $image, $width = null, $height = null)
+    public function save(\Imagick $image, $width = null, $height = null): bool
     {
         // TODO: Implement save() method.
     }
 
-    public function read($width = null, $height = null)
+    public function read($width = null, $height = null): bool
     {
         // TODO: Implement read() method.
     }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\SaveHandler;
 
 use ImageUploader\Exception\FlowException;
@@ -28,7 +28,7 @@ class Filesystem implements SaveHandlerInterface
      *
      * @return string
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
@@ -52,7 +52,7 @@ class Filesystem implements SaveHandlerInterface
      * @return string
      * @throws FlowException
      */
-    public function getPath($width = null, $height = null)
+    public function getPath($width = null, $height = null): string
     {
         if (!$this->id) {
             throw new FlowException('ID must be initialized in order to get the image path');
@@ -76,7 +76,7 @@ class Filesystem implements SaveHandlerInterface
      * @return string
      * @throws FlowException
      */
-    public function getLocalPath($width = null, $height = null)
+    public function getLocalPath($width = null, $height = null): string
     {
         if (!$this->id) {
             throw new FlowException('ID must be initialized in order to get the image path');
@@ -105,7 +105,7 @@ class Filesystem implements SaveHandlerInterface
      *
      * @return string
      */
-    private function generateFilename($id, $params = [])
+    private function generateFilename($id, $params = []): string
     {
         $paramsString = '';
 
@@ -132,7 +132,7 @@ class Filesystem implements SaveHandlerInterface
      * @return string
      * @throws FlowException
      */
-    private function generateDirsPath($id, $dir)
+    private function generateDirsPath($id, $dir): string
     {
         // find the integer part inside the id
         preg_match('/(.*)-(\d+)(.*)/', $id, $matches);
@@ -162,7 +162,7 @@ class Filesystem implements SaveHandlerInterface
      *
      * @return bool
      */
-    private function imageIsOriginal($params)
+    private function imageIsOriginal($params): bool
     {
         return empty(array_filter($params, function($param) {
             return !empty($param);
@@ -177,7 +177,7 @@ class Filesystem implements SaveHandlerInterface
      *
      * @return string
      */
-    private function getCompletePath($params = [], $public = false)
+    private function getCompletePath($params = [], $public = false): string
     {
         $parts = [];
 
@@ -208,7 +208,7 @@ class Filesystem implements SaveHandlerInterface
      * @return bool
      * @throws NotProvidedException
      */
-    public function save(\Imagick $image, $width = null, $height = null)
+    public function save(\Imagick $image, $width = null, $height = null): bool
     {
         // if width or height are provided, ID is required and cannot be null
         if (($width !== null || $height !== null) && $this->id == null) {
@@ -242,7 +242,7 @@ class Filesystem implements SaveHandlerInterface
      * @throws FlowException
      * @throws NotFoundException
      */
-    public function read($width = null, $height = null)
+    public function read($width = null, $height = null): bool
     {
         if (!$this->id) {
             throw new FlowException('ID must be initialized in order to read image info');

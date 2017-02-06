@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Validator;
 
 use ImageUploader\Exception\FlowException;
@@ -17,7 +17,7 @@ class DimensionValidator implements ValidatorInterface
      *
      * @return bool
      */
-    public function validate(\Imagick $image, $width = null, $height = null)
+    public function validate(\Imagick $image, $width = null, $height = null): bool
     {
         // all dimensions are allowed
         if (!getenv('ALLOWED_DIMENSIONS')) {

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
@@ -52,7 +52,7 @@ class Api
      *
      * @return array
      */
-    private function read()
+    private function read(): array
     {
         $id = filter_input(INPUT_GET, 'id');
 
@@ -72,8 +72,11 @@ class Api
 
     /**
      * Create an image
+     *
+     * @return array
+     * @throws NotProvidedException
      */
-    private function create()
+    private function create(): array
     {
         if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
             $data = json_decode(file_get_contents('php://input'), true);

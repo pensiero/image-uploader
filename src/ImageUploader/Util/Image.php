@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace ImageUploader\Util;
 
 class Image
@@ -13,7 +13,7 @@ class Image
      *
      * @return \Imagick
      */
-    public static function scaleSingleImage(\Imagick $image, $width, $height)
+    public static function scaleSingleImage(\Imagick $image, $width, $height): \Imagick
     {
         $imageWidth = $image->getImageWidth();
         $imageHeight = $image->getImageHeight();
