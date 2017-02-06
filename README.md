@@ -32,6 +32,8 @@ Environment variables allowed:
 
 ## Usage via API
 
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/0c7cee4b3b9d99cfbd2f)
+
 In order to receive a JSON response, you should add the following headers:
 - `Content-Type: application/json`
 - `Accept: application/json; charset=utf-8`
