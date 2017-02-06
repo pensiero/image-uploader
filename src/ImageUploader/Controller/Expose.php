@@ -3,6 +3,8 @@ namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
 use ImageUploader\SaveHandler\Filesystem;
+use ImageUploader\Validator\SizeValidator;
+use ImageUploader\Validator\DimensionValidator;
 
 class Expose
 {
@@ -18,14 +20,21 @@ class Expose
      */
     public function __construct()
     {
+        // init the Image entity
         $this->image = new Image();
+
+        // set the save handler
+        $this->image->setSaveHandler(new Filesystem());
+
+        // set the validators
+        $this->image->setValidators([
+            new SizeValidator(),
+            new DimensionValidator(),
+        ]);
     }
 
     public function init()
     {
-        // init the Image entity
-        $this->image->setSaveHandler(new Filesystem());
-
         // read request
         if (!$_SERVER['REQUEST_METHOD'] === 'GET') {
             return;

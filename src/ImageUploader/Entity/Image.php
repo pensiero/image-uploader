@@ -7,12 +7,11 @@ use ImageUploader\Exception\NotFoundException;
 use ImageUploader\SaveHandler\SaveHandlerInterface;
 use ImageUploader\Util\RemoteFile;
 use ImageUploader\Util\Image as ImageUtil;
+use ImageUploader\Validator\ValidatorInterface;
 
 class Image
 {
     const QUALITY = 90;
-
-    const MAX_SIZE = 10240; // Kb
 
     const MAX_WIDTH = 4096; // Kb
 
@@ -24,6 +23,11 @@ class Image
      * @var SaveHandlerInterface
      */
     protected $saveHandler;
+
+    /**
+     * @var ValidatorInterface[]
+     */
+    protected $validators = [];
 
     /**
      * @var \Imagick
@@ -42,6 +46,8 @@ class Image
     {
         // check if the passed source is an url
         if (filter_var($source, FILTER_VALIDATE_URL)) {
+
+            // check if the file exists
             if (!RemoteFile::checkIfExists($source)) {
                 throw new NotFoundException("Image not found");
             }
@@ -56,9 +62,9 @@ class Image
             $this->image->readImageBlob(base64_decode($source));
         }
 
-
-        if ($this->image->getImageLength() > self::MAX_SIZE * 1000) {
-            throw new FlowException('Maximum allowed filesize of ' . self::MAX_SIZE . 'KB exceeded');
+        // apply validators
+        foreach ($this->validators as $validator) {
+            $validator->validate($this->image);
         }
 
         // remove exif informations (optimization)
@@ -68,7 +74,7 @@ class Image
 
         // resize image if greater than maximum dimension allowed
         if ($this->image->getImageWidth() > self::MAX_WIDTH || $this->image->getImageHeight() > self::MAX_HEIGHT) {
-            $this->image->scaleImage(self::MAX_WIDTH, self::MAX_HEIGHT, true);
+            $this->image = ImageUtil::scaleSingleImage($this->image, self::MAX_WIDTH, self::MAX_HEIGHT);
         }
     }
 
@@ -85,6 +91,11 @@ class Image
     {
         if ($this->image === null) {
             throw new NotProvidedException('Image must be created in order to resize it');
+        }
+
+        // apply validators
+        foreach ($this->validators as $validator) {
+            $validator->validate($this->image, $width, $height);
         }
 
         return ImageUtil::scaleSingleImage($this->image, $width, $height);
@@ -253,5 +264,13 @@ class Image
     public function setSaveHandler($saveHandler)
     {
         $this->saveHandler = $saveHandler;
+    }
+
+    /**
+     * @param ValidatorInterface[] $validators
+     */
+    public function setValidators(array $validators)
+    {
+        $this->validators = $validators;
     }
 }
