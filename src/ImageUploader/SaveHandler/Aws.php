@@ -3,12 +3,12 @@ namespace ImageUploader\SaveHandler;
 
 class Aws implements SaveHandlerInterface
 {
-    public function getId()
+    public function getId(): string
     {
         // TODO: Implement getId() method.
     }
 
-    public function setId($id)
+    public function setId(string $id)
     {
         // TODO: Implement setId() method.
     }

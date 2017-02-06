@@ -20,7 +20,7 @@ interface SaveHandlerInterface
      *
      * @param string $id
      */
-    public function setId($id);
+    public function setId(string $id);
 
     /**
      * Return the public path of the image
