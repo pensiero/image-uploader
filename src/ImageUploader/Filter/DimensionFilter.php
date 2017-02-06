@@ -5,10 +5,6 @@ use ImageUploader\Util\Image as ImageUtil;
 
 class DimensionFilter implements FilterInterface
 {
-    const MAX_WIDTH = 4096; // Kb
-
-    const MAX_HEIGHT = 4096; // Kb
-
     /**
      * Resize image if greater than maximum dimension allowed
      *
@@ -18,8 +14,17 @@ class DimensionFilter implements FilterInterface
      */
     public function filter(\Imagick $image)
     {
-        if ($image->getImageWidth() > self::MAX_WIDTH || $image->getImageHeight() > self::MAX_HEIGHT) {
-            return ImageUtil::scaleSingleImage($image, self::MAX_WIDTH, self::MAX_HEIGHT);
+        // return passed image if there is are no MAX_DIMENSIONS env var specified
+        if (!getenv('MAX_DIMENSIONS')) {
+            return $image;
+        }
+
+        // recover max width and max height from MAX_DIMENSIONS env var
+        list($maxWidth, $maxHeight) = implode('x', getenv('MAX_DIMENSIONS'));
+
+        // scale image only if its dimensions are greater than allowed once
+        if ($image->getImageWidth() > $maxWidth || $image->getImageHeight() > $maxHeight) {
+            return ImageUtil::scaleSingleImage($image, $maxWidth, $maxHeight);
         }
 
         return $image;
