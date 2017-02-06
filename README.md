@@ -14,6 +14,7 @@ API based service that allow to save, resize and read images
 - [ ] Unit testing
 - [ ] Submit on packagist (composer)
 - [ ] Host the demo somewhere
+- [ ] Auth token API protection
 
 
 ## Configuration
