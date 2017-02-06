@@ -1,6 +1,7 @@
 <?php
 namespace ImageUploader\Filter;
 
+use ImageUploader\Exception\FlowException;
 use ImageUploader\Util\Image as ImageUtil;
 
 class DimensionFilter implements FilterInterface
@@ -11,6 +12,7 @@ class DimensionFilter implements FilterInterface
      * @param \Imagick $image
      *
      * @return \Imagick
+     * @throws FlowException
      */
     public function filter(\Imagick $image)
     {
@@ -21,6 +23,11 @@ class DimensionFilter implements FilterInterface
 
         // recover max width and max height from MAX_DIMENSIONS env var
         list($maxWidth, $maxHeight) = implode('x', getenv('MAX_DIMENSIONS'));
+
+        // check if max size is an integer
+        if (!is_numeric($maxWidth) || !is_numeric($maxHeight) ) {
+            throw new FlowException('Each dimension specified in the MAX_DIMENSIONS env var must be an integer');
+        }
 
         // scale image only if its dimensions are greater than allowed once
         if ($image->getImageWidth() > $maxWidth || $image->getImageHeight() > $maxHeight) {

@@ -1,6 +1,7 @@
 <?php
 namespace ImageUploader\Validator;
 
+use ImageUploader\Exception\FlowException;
 use ImageUploader\Exception\ValidationException;
 
 class DimensionValidator implements ValidatorInterface
@@ -36,6 +37,11 @@ class DimensionValidator implements ValidatorInterface
 
             // recover width and height from dimension env var
             list($dimensionWidth, $dimensionHeight) = explode('x', $dimension);
+
+            // check if max size is an integer
+            if (!is_numeric($dimensionWidth) || !is_numeric($dimensionHeight)) {
+                throw new FlowException('Each dimension specified in the ALLOWED_DIMENSIONS env var must be an integer');
+            }
 
             return (int) $dimensionWidth === (int) $width && (int) $dimensionHeight === (int) $height;
         });
