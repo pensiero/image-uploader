@@ -43,7 +43,7 @@ In order to receive a JSON response, you should add the following headers:
 > Return info about a previously uploaded image
 
 Parameters:
-- `id`: (*optinal*: integer) id of a previously uploaded image
+- `id`: (*optional*: integer) id of a previously uploaded image
 
 Example GET data: `{}`
 
@@ -69,13 +69,6 @@ Example response:
     "width": null,
     "height": null
   }
-```
-
-Example GET data: `{}`
-
-Example response:
-```
-  {"ping":"pong"}
 ```
 
 ### POST https://theappleisonthetable.com/
