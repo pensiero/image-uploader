@@ -6,6 +6,8 @@ use ImageUploader\Exception\ValidationException;
 class DimensionValidator implements ValidatorInterface
 {
     /**
+     * Check dimensions (width and height) of an image and compare them with the allowed dimensions
+     *
      * @param \Imagick $image
      * @param int|null $width
      * @param int|null $height

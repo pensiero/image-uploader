@@ -3,6 +3,7 @@ namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
 use ImageUploader\Exception\NotProvidedException;
+use ImageUploader\SaveHandler\Aws;
 use ImageUploader\SaveHandler\Filesystem;
 use ImageUploader\Validator\SizeValidator;
 use ImageUploader\Validator\DimensionValidator;
@@ -22,8 +23,22 @@ class Api
         // init the Image entity
         $this->image = new Image();
 
+        // check SAVE_HANDLER env var
+        if (!getenv('SAVE_HANDLER') || !in_array(getenv('SAVE_HANDLER'), ['filesystem', 'aws'])) {
+            throw new NotProvidedException('SAVE_HANDLER must be provided and could be "filesystem" or "aws"');
+        }
+
         // set the save handler
-        $this->image->setSaveHandler(new Filesystem());
+        switch (getenv('SAVE_HANDLER')) {
+            case 'filesystem': { $saveHandler = new Filesystem(); }
+            break;
+            case 'aws': { $saveHandler = new Aws(); }
+            break;
+            default: { $saveHandler = new Filesystem(); }
+            break;
+        }
+
+        $this->image->setSaveHandler($saveHandler);
 
         // set the validators
         $this->image->setValidators([

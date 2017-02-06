@@ -8,6 +8,8 @@ class SizeValidator implements ValidatorInterface
     const MAX_SIZE = 10240; // Kb
 
     /**
+     * Check if an image exceed the maximum allowed size
+     *
      * @param \Imagick $image
      * @param int|null $width
      * @param int|null $height

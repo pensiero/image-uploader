@@ -4,6 +4,7 @@ namespace ImageUploader\Entity;
 use ImageUploader\Exception\FlowException;
 use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\Exception\NotFoundException;
+use ImageUploader\Filter\FilterInterface;
 use ImageUploader\SaveHandler\SaveHandlerInterface;
 use ImageUploader\Util\RemoteFile;
 use ImageUploader\Util\Image as ImageUtil;
@@ -12,12 +13,6 @@ use ImageUploader\Validator\ValidatorInterface;
 class Image
 {
     const QUALITY = 90;
-
-    const MAX_WIDTH = 4096; // Kb
-
-    const MAX_HEIGHT = 4096; // Kb
-
-    const OPTIMIZE = true;
 
     /**
      * @var SaveHandlerInterface
@@ -28,6 +23,11 @@ class Image
      * @var ValidatorInterface[]
      */
     protected $validators = [];
+
+    /**
+     * @var FilterInterface[]
+     */
+    protected $filters = [];
 
     /**
      * @var \Imagick
@@ -62,19 +62,14 @@ class Image
             $this->image->readImageBlob(base64_decode($source));
         }
 
-        // apply validators
+        // check validators
         foreach ($this->validators as $validator) {
             $validator->validate($this->image);
         }
 
-        // remove exif informations (optimization)
-        if (self::OPTIMIZE) {
-            $this->image->stripImage();
-        }
-
-        // resize image if greater than maximum dimension allowed
-        if ($this->image->getImageWidth() > self::MAX_WIDTH || $this->image->getImageHeight() > self::MAX_HEIGHT) {
-            $this->image = ImageUtil::scaleSingleImage($this->image, self::MAX_WIDTH, self::MAX_HEIGHT);
+        // apply filters
+        foreach ($this->filters as $filter) {
+            $this->image = $filter->filter($this->image);
         }
     }
 
@@ -93,12 +88,20 @@ class Image
             throw new NotProvidedException('Image must be created in order to resize it');
         }
 
-        // apply validators
+        // check validators
         foreach ($this->validators as $validator) {
             $validator->validate($this->image, $width, $height);
         }
 
-        return ImageUtil::scaleSingleImage($this->image, $width, $height);
+        // resize image
+        $image = ImageUtil::scaleSingleImage($this->image, $width, $height);
+
+        // apply filters
+        foreach ($this->filters as $filter) {
+            $image = $filter->filter($image);
+        }
+
+        return $image;
     }
 
     private function info($width = null, $height = null)
@@ -111,7 +114,6 @@ class Image
             'path_dynamic' => $this->saveHandler->getPath('#WIDTH#', '#HEIGHT#'),
             'width'        => $width,
             'height'       => $height,
-            'optimized'    => self::OPTIMIZE,
         ];
     }
 
