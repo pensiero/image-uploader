@@ -64,8 +64,8 @@ class Api
         }
 
         // width and height
-        $width = filter_input(INPUT_GET, 'width', FILTER_SANITIZE_NUMBER_INT) ?: null;
-        $height = filter_input(INPUT_GET, 'height', FILTER_SANITIZE_NUMBER_INT) ?: null;
+        $width = (int) filter_input(INPUT_GET, 'width', FILTER_SANITIZE_NUMBER_INT) ?: null;
+        $height = (int) filter_input(INPUT_GET, 'height', FILTER_SANITIZE_NUMBER_INT) ?: null;
 
         return $this->image->read($id, $width, $height);
     }
@@ -80,12 +80,12 @@ class Api
     {
         if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
             $data = json_decode(file_get_contents('php://input'), true);
-            $source = $data['source'];
+            $source = base64_decode($data['source']);
         }
         else {
             $source = !empty($_FILES)
                 ? $_FILES['source']['tmp_name']
-                : filter_input(INPUT_POST, 'source');
+                : base64_decode(filter_input(INPUT_POST, 'source'));
         }
 
         // source is required
@@ -94,8 +94,8 @@ class Api
         }
 
         // width and height
-        $width = filter_input(INPUT_POST, 'width', FILTER_SANITIZE_NUMBER_INT) ?: null;
-        $height = filter_input(INPUT_POST, 'height', FILTER_SANITIZE_NUMBER_INT) ?: null;
+        $width = (int) filter_input(INPUT_POST, 'width', FILTER_SANITIZE_NUMBER_INT) ?: null;
+        $height = (int) filter_input(INPUT_POST, 'height', FILTER_SANITIZE_NUMBER_INT) ?: null;
 
         return $this->image->upload($source, $width, $height);
     }

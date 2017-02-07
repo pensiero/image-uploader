@@ -59,7 +59,7 @@ class Image
 
             // create an Imagick from a base64 string
             $this->image = new \Imagick();
-            $this->image->readImageBlob(base64_decode($source));
+            $this->image->readImageBlob($source);
         }
 
         // check validators
@@ -94,7 +94,7 @@ class Image
         }
 
         // resize image
-        $image = ImageUtil::scaleSingleImage($this->image, $width, $height);
+        $image = ImageUtil::scaleSingleImage($this->image, (int) $width, (int) $height);
 
         // apply filters
         foreach ($this->filters as $filter) {
@@ -117,12 +117,21 @@ class Image
         return [
             'status_code'  => 200,
             'id'           => $this->saveHandler->getId(),
-            'path'         => $this->saveHandler->getPath($width, $height),
-            'path_local'   => $this->saveHandler->getLocalPath($width, $height),
-            'path_dynamic' => $this->saveHandler->getPath('#WIDTH#', '#HEIGHT#'),
+            'url'          => $this->saveHandler->getUrl($width, $height),
+            'url_dynamic'  => $this->saveHandler->getUrl('#WIDTH#', '#HEIGHT#'),
             'width'        => $width,
             'height'       => $height,
         ];
+    }
+
+    /**
+     * Get the blob of the image
+     *
+     * @return string
+     */
+    public function getBlob(): string
+    {
+        return $this->saveHandler->getBlob();
     }
 
     /**
@@ -221,9 +230,12 @@ class Image
                 ];
             }
 
+            // init the saveHandler with the original image (without params)
+            $this->saveHandler->read();
+
             // create the Imagick entity from the image path
             try {
-                $this->create($this->saveHandler->getLocalPath());
+                $this->create($this->getBlob());
             }
             catch (FlowException $e) {
                 return [

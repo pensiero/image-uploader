@@ -3,7 +3,6 @@ namespace ImageUploader\Util;
 
 class Image
 {
-
     /**
      * Resize a single image
      *
@@ -30,9 +29,8 @@ class Image
             return $image;
         }
 
-        $image->scaleImage($width, $height, false);
+        $image->scaleImage((int) $width, (int) $height, false);
 
         return $image;
     }
-
 }

@@ -6,7 +6,7 @@ use ImageUploader\Exception\NotFoundException;
 use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\Util\Request;
 
-class Filesystem implements SaveHandlerInterface
+class Filesystem extends SaveHandler implements SaveHandlerInterface
 {
     // filesystem directories
     const IMAGES_DIR = 'data/images';
@@ -14,114 +14,6 @@ class Filesystem implements SaveHandlerInterface
 
     // public directory
     const PUBLIC_DIR = 'i';
-
-    // default image format
-    const FORMAT_DEFAULT = 'jpg';
-
-    /**
-     * @var string
-     */
-    protected $id;
-
-    /**
-     * ID of the image
-     *
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * ID of the image
-     *
-     * @param string $id
-     */
-    public function setId(string $id)
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * Public path of the image
-     *
-     * @param null $width
-     * @param null $height
-     *
-     * @return string
-     * @throws FlowException
-     */
-    public function getPath($width = null, $height = null): string
-    {
-        if (!$this->id) {
-            throw new FlowException('ID must be initialized in order to get the image path');
-        }
-
-        return
-            Request::serverUrl()
-            . '/'
-            . $this->getCompletePath([
-                'width'  => $width,
-                'height' => $height,
-            ], true);
-    }
-
-    /**
-     * Local path of the image
-     *
-     * @param int|null $width
-     * @param int|null $height
-     *
-     * @return string
-     * @throws FlowException
-     */
-    public function getLocalPath($width = null, $height = null): string
-    {
-        if (!$this->id) {
-            throw new FlowException('ID must be initialized in order to get the image path');
-        }
-
-        return
-            $this->getCompletePath([
-                'width'  => $width,
-                'height' => $height,
-            ]);
-    }
-
-    /**
-     * Generate a random string as unique id
-     */
-    private function generateId()
-    {
-        $this->id = str_replace('.', '-', uniqid('', true));
-    }
-
-    /**
-     * Attach the passed params to the id in order to generate the filename
-     *
-     * @param string $id
-     * @param array $params
-     *
-     * @return string
-     */
-    private function generateFilename($id, $params = []): string
-    {
-        $paramsString = '';
-
-        if (!empty($params)) {
-
-            // replace null values with zero
-            $params = array_map(function($param) {
-                return empty($param) ? 0 : $param;
-            }, $params);
-
-            $paramsString = '_' . implode($params, '_');
-        }
-
-        // concatenate id, params and extension
-        return $id . $paramsString . '.' . self::FORMAT_DEFAULT;
-    }
 
     /**
      * Return path with format 1/2/3/4/1234.jpg (where 1234 it's the id of the image)
@@ -156,20 +48,6 @@ class Filesystem implements SaveHandlerInterface
     }
 
     /**
-     * Image is considered "original" if there are only empty params
-     *
-     * @param $params
-     *
-     * @return bool
-     */
-    private function imageIsOriginal($params): bool
-    {
-        return empty(array_filter($params, function($param) {
-            return !empty($param);
-        }));
-    }
-
-    /**
      * Complete path of the image
      *
      * @param array  $params
@@ -199,6 +77,30 @@ class Filesystem implements SaveHandlerInterface
     }
 
     /**
+     * Public path of the image
+     *
+     * @param null $width
+     * @param null $height
+     *
+     * @return string
+     * @throws FlowException
+     */
+    public function getUrl($width = null, $height = null): string
+    {
+        if (!$this->id) {
+            throw new FlowException('ID must be initialized in order to get the image path');
+        }
+
+        return
+            Request::serverUrl()
+                . '/'
+                . $this->getCompletePath([
+                    'width'  => $width,
+                    'height' => $height,
+                ], true);
+    }
+
+    /**
      * Write the image on the filesystem
      *
      * @param \Imagick $image
@@ -220,16 +122,18 @@ class Filesystem implements SaveHandlerInterface
             $this->generateId();
         }
 
+        // get the path where to save the image
         $path = $this->getCompletePath([
             'width'  => $width,
             'height' => $height,
         ]);
 
+        // write the image on the filesystem
         $result = $image->writeImage($path);
 
         $image->destroy();
 
-        return $result;
+        return (bool) $result;
     }
 
     /**
@@ -256,6 +160,8 @@ class Filesystem implements SaveHandlerInterface
         if (!file_exists($path)) {
             throw new NotFoundException();
         }
+
+        $this->blob = file_get_contents($path);
 
         return true;
     }

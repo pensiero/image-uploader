@@ -6,10 +6,10 @@ API based service that allow to save, resize and read images
 ## Features
 
 - [x] Save on **Filesystem**
-- [ ] Save on **AWS**
+- [x] Save on **AWS**
 - [x] Possibility to add Validators
 - [x] Possibility to add Filters
-- [ ] PHP7 strict mode
+- [x] PHP7 strict mode
 - [x] Link with public Postman collection
 - [ ] Unit testing
 - [ ] Submit on packagist (composer)
@@ -66,9 +66,8 @@ Example response:
   {
     "status_code": 200,
     "id": "5897209a9325f7-78554697",
-    "path": "http://image-uploader.dev/i/5897209a9325f7-78554697_0_0.jpg",
-    "path_local": "data/images/7/9/6/4/5/5/8/7/5897209a9325f7-78554697_0_0.jpg",
-    "path_dynamic": "http://image-uploader.dev/i/5897209a9325f7-78554697_#WIDTH#_#HEIGHT#.jpg",
+    "url": "http://image-uploader.dev/i/5897209a9325f7-78554697_0_0.jpg",
+    "url_dynamic": "http://image-uploader.dev/i/5897209a9325f7-78554697_#WIDTH#_#HEIGHT#.jpg",
     "width": null,
     "height": null
   }
@@ -92,9 +91,8 @@ Example response:
   {
     "status_code": 200,
     "id": "5898c96c4a2d62-52410036",
-    "path": "http://image-uploader.dev/i/5898c96c4a2d62-52410036_0_0.jpg",
-    "path_local": "data/images/6/3/0/0/1/4/2/5/5898c96c4a2d62-52410036_0_0.jpg",
-    "path_dynamic": "http://image-uploader.dev/i/5898c96c4a2d62-52410036_#WIDTH#_#HEIGHT#.jpg",
+    "url": "http://image-uploader.dev/i/5898c96c4a2d62-52410036_0_0.jpg",
+    "url_dynamic": "http://image-uploader.dev/i/5898c96c4a2d62-52410036_#WIDTH#_#HEIGHT#.jpg",
     "width": null,
     "height": null
   }

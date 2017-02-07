@@ -23,6 +23,13 @@ interface SaveHandlerInterface
     public function setId(string $id);
 
     /**
+     * Return blob of the readed image
+     *
+     * @return string
+     */
+    public function getBlob(): string;
+
+    /**
      * Return the public path of the image
      *
      * @param int|null $width
@@ -30,17 +37,7 @@ interface SaveHandlerInterface
      *
      * @return string
      */
-    public function getPath($width = null, $height = null): string;
-
-    /**
-     * Return the local path of the image
-     *
-     * @param int|null $width
-     * @param int|null $height
-     *
-     * @return string
-     */
-    public function getLocalPath($width = null, $height = null): string;
+    public function getUrl($width = null, $height = null): string;
 
     /**
      * Upload the imagick object (and eventually take in consideration that is a resized one if width and height are provided)
