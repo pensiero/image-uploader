@@ -13,10 +13,16 @@ $image = new \ImageUploader\Entity\Image();
 $image->setSaveHandler(new \ImageUploader\SaveHandler\Filesystem());
 
 // set the validators
-$image->setValidators([
+$image->setValidators(
     new \ImageUploader\Validator\SizeValidator(),
-    new \ImageUploader\Validator\DimensionValidator(),
-]);
+    new \ImageUploader\Validator\DimensionValidator()
+);
+
+// set the filters
+$image->setFilters(
+    new \ImageUploader\Filter\OptimizeFilter(),
+    new \ImageUploader\Filter\DimensionFilter()
+);
 
 $response = $image->read('5896209597abf1-90318852', 400, 0);
 

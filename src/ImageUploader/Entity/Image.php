@@ -289,10 +289,22 @@ class Image
     }
 
     /**
-     * @param ValidatorInterface[] $validators
+     * @param FilterInterface[] ...$filters
      */
-    public function setValidators(array $validators)
+    public function setFilters(FilterInterface ...$filters)
     {
-        $this->validators = $validators;
+        foreach ($filters as $filter) {
+            $this->filters[] = $filter;
+        }
+    }
+
+    /**
+     * @param ValidatorInterface[] ...$validators
+     */
+    public function setValidators(ValidatorInterface ...$validators)
+    {
+        foreach ($validators as $validator) {
+            $this->validators[] = $validator;
+        }
     }
 }

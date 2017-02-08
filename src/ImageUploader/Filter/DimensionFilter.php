@@ -22,7 +22,7 @@ class DimensionFilter implements FilterInterface
         }
 
         // recover max width and max height from MAX_DIMENSIONS env var
-        list($maxWidth, $maxHeight) = implode('x', getenv('MAX_DIMENSIONS'));
+        list($maxWidth, $maxHeight) = explode('x', getenv('MAX_DIMENSIONS'));
 
         // check if max size is an integer
         if (!is_numeric($maxWidth) || !is_numeric($maxHeight) ) {

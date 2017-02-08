@@ -3,6 +3,8 @@ namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
 use ImageUploader\Exception\NotProvidedException;
+use ImageUploader\Filter\DimensionFilter;
+use ImageUploader\Filter\OptimizeFilter;
 use ImageUploader\SaveHandler\Filesystem;
 use ImageUploader\SaveHandler\Flysystem;
 use ImageUploader\Validator\SizeValidator;
@@ -49,10 +51,16 @@ class Expose
         $this->image->setSaveHandler($saveHandler);
 
         // set the validators
-        $this->image->setValidators([
+        $this->image->setValidators(
             new SizeValidator(),
-            new DimensionValidator(),
-        ]);
+            new DimensionValidator()
+        );
+
+        // set the filters
+        $this->image->setFilters(
+            new OptimizeFilter(),
+            new DimensionFilter()
+        );
     }
 
     /**
