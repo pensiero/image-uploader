@@ -7,6 +7,7 @@ use ImageUploader\Filter\DimensionFilter;
 use ImageUploader\Filter\OptimizeFilter;
 use ImageUploader\SaveHandler\Aws;
 use ImageUploader\SaveHandler\Filesystem;
+use ImageUploader\SaveHandler\Flysystem;
 use ImageUploader\Validator\SizeValidator;
 use ImageUploader\Validator\DimensionValidator;
 
@@ -32,11 +33,17 @@ class Api
 
         // set the save handler
         switch (getenv('SAVE_HANDLER')) {
-            case 'filesystem': { $saveHandler = new Filesystem(); }
+            case 'filesystem': {
+                $saveHandler = new Filesystem();
+            }
             break;
-            case 'aws': { $saveHandler = new Aws(); }
+            case 'aws': {
+                $saveHandler = new Flysystem(new Flysystem\Adapter\AwsAdapter());
+            }
             break;
-            default: { $saveHandler = new Filesystem(); }
+            default: {
+                $saveHandler = new Filesystem();
+            }
             break;
         }
 
@@ -86,14 +93,18 @@ class Api
      */
     private function create(): array
     {
+        // source passed via JSON request
         if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
             $data = json_decode(file_get_contents('php://input'), true);
             $source = base64_decode($data['source']);
         }
+        // source uploaded
+        else if (!empty($_FILES)) {
+            $source = file_get_contents($_FILES['source']['tmp_name']);
+        }
+        // source passed via generic POST request
         else {
-            $source = !empty($_FILES)
-                ? $_FILES['source']['tmp_name']
-                : base64_decode(filter_input(INPUT_POST, 'source'));
+            $source = base64_decode(filter_input(INPUT_POST, 'source'));
         }
 
         // source is required
