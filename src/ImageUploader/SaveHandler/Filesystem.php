@@ -128,6 +128,9 @@ class Filesystem extends SaveHandler implements SaveHandlerInterface
             'height' => $height,
         ]);
 
+        // save blob
+        $this->blob = $image->getImageBlob();
+
         // write the image on the filesystem
         $result = $image->writeImage($path);
 

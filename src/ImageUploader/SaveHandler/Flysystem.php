@@ -97,8 +97,11 @@ class Flysystem extends SaveHandler implements SaveHandlerInterface
             'height' => $height,
         ]);
 
+        // get image's blob
+        $this->blob = $image->getImageBlob();
+
         // write on the local adapter
-        $result = $this->adapter->write($path, $image->getImageBlob());
+        $result = $this->adapter->write($path, $this->blob);
 
         // free memory
         $image->destroy();
