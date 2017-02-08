@@ -43,10 +43,18 @@ class Flysystem extends SaveHandler implements SaveHandlerInterface
     {
         $parts = [];
 
-        // first directory
-        $parts[] = $public
-            ? self::PUBLIC_DIR
-            : ($this->imageIsOriginal($params) ? self::IMAGES_DIR : self::THUMBS_DIR);
+        // public dir
+        if ($public) {
+            $parts[] = self::PUBLIC_DIR;
+        }
+        // original image
+        else if ($this->imageIsOriginal($params)) {
+            $parts[] = self::IMAGES_DIR;
+        }
+        else {
+            $parts[] = self::THUMBS_DIR;
+            $parts[] = implode('_', array_map('intval', $params));
+        }
 
         // filename
         $parts[] = $this->generateFilename($this->id, $params);
