@@ -10,7 +10,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 $image = new \ImageUploader\Entity\Image();
 
 // set the save handler
-$image->setSaveHandler(new \ImageUploader\SaveHandler\Aws());
+$saveHandler = new \ImageUploader\SaveHandler\Flysystem(new \ImageUploader\SaveHandler\Flysystem\Adapter\AwsAdapter());
+$image->setSaveHandler($saveHandler);
 
 // set the validators
 $image->setValidators([

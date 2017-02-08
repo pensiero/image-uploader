@@ -3,8 +3,8 @@ namespace ImageUploader\Controller;
 
 use ImageUploader\Entity\Image;
 use ImageUploader\Exception\NotProvidedException;
-use ImageUploader\SaveHandler\Aws;
 use ImageUploader\SaveHandler\Filesystem;
+use ImageUploader\SaveHandler\Flysystem;
 use ImageUploader\Validator\SizeValidator;
 use ImageUploader\Validator\DimensionValidator;
 
@@ -32,11 +32,17 @@ class Expose
 
         // set the save handler
         switch (getenv('SAVE_HANDLER')) {
-            case 'filesystem': { $saveHandler = new Filesystem(); }
+            case 'filesystem': {
+                $saveHandler = new Filesystem();
+            }
             break;
-            case 'aws': { $saveHandler = new Aws(); }
+            case 'aws': {
+                $saveHandler = new Flysystem(new Flysystem\Adapter\AwsAdapter());
+            }
             break;
-            default: { $saveHandler = new Filesystem(); }
+            default: {
+                $saveHandler = new Filesystem();
+            }
             break;
         }
 

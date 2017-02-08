@@ -1,16 +1,13 @@
 <?php declare(strict_types=1);
 namespace ImageUploader\SaveHandler;
 
-use Aws\S3\S3Client;
 use ImageUploader\Exception\FlowException;
 use ImageUploader\Exception\NotFoundException;
 use ImageUploader\Exception\NotProvidedException;
+use ImageUploader\SaveHandler\Flysystem\Adapter\AdapterInterface;
 use ImageUploader\Util\Request;
-use League\Flysystem\AdapterInterface;
-use League\Flysystem\AwsS3v3\AwsS3Adapter;
-use League\Flysystem\Config;
 
-class Aws extends SaveHandler implements SaveHandlerInterface
+class Flysystem extends SaveHandler implements SaveHandlerInterface
 {
     // filesystem directories
     const IMAGES_DIR = 'images';
@@ -20,27 +17,18 @@ class Aws extends SaveHandler implements SaveHandlerInterface
     const PUBLIC_DIR = 'i';
 
     /**
-     * @var S3Client
-     */
-    protected $client;
-
-    /**
-     * @var AwsS3Adapter
+     * @var AdapterInterface
      */
     protected $adapter;
 
-    public function __construct()
+    /**
+     * Flysystem constructor.
+     *
+     * @param AdapterInterface $adapter
+     */
+    public function __construct(AdapterInterface $adapter)
     {
-        $this->client = new S3Client([
-            'credentials' => [
-                'key'    => getenv('AWS_ACCESS_KEY_ID'),
-                'secret' => getenv('AWS_SECRET_ACCESS_KEY'),
-            ],
-            'region'      => getenv('AWS_REGION'),
-            'version'     => 'latest',
-        ]);
-
-        $this->adapter = new AwsS3Adapter($this->client, getenv('AWS_BUCKET'));
+        $this->adapter = $adapter;
     }
 
     /**
@@ -103,18 +91,16 @@ class Aws extends SaveHandler implements SaveHandlerInterface
             $this->generateId();
         }
 
+        // get local path
         $path = $this->getCompletePath([
             'width'  => $width,
             'height' => $height,
         ]);
 
-        $config = new Config([
-            'visibility' => AdapterInterface::VISIBILITY_PUBLIC,
-            'mimetype'   => 'application/json',
-        ]);
+        // write on the local adapter
+        $result = $this->adapter->write($path, $image->getImageBlob());
 
-        $result = $this->adapter->write($path, $image->getImageBlob(), $config);
-
+        // free memory
         $image->destroy();
 
         return (bool) $result;
