@@ -4,6 +4,7 @@ namespace ImageUploader\Entity;
 use ImageUploader\Exception\FlowException;
 use ImageUploader\Exception\NotProvidedException;
 use ImageUploader\Exception\NotFoundException;
+use ImageUploader\Exception\ValidationException;
 use ImageUploader\Filter\FilterInterface;
 use ImageUploader\SaveHandler\SaveHandlerInterface;
 use ImageUploader\Util\RemoteFile;
@@ -169,16 +170,44 @@ class Image
                     'message'     => $e->getMessage(),
                 ];
             }
+            catch (ValidationException $e) {
+                return [
+                    'status_code' => 500,
+                    'message'     => $e->getMessage(),
+                ];
+            }
         }
 
         // null width and height if empty
         $width = !empty($width) ? $width : null;
         $height = !empty($height) ? $height : null;
 
-        // use the original image or resize it before uploading
-        $image = $width === null && $height === null
-            ? $this->image
-            : $this->resize($width, $height);
+
+        try {
+
+            // use the original image or resize it before uploading
+            $image = $width === null && $height === null
+                ? $this->image
+                : $this->resize($width, $height);
+        }
+        catch (FlowException $e) {
+            return [
+                'status_code' => 422,
+                'message'     => $e->getMessage(),
+            ];
+        }
+        catch (NotFoundException $e) {
+            return [
+                'status_code' => 404,
+                'message'     => $e->getMessage(),
+            ];
+        }
+        catch (ValidationException $e) {
+            return [
+                'status_code' => 500,
+                'message'     => $e->getMessage(),
+            ];
+        }
 
         // save the image (params should not to be passed, we are dealing with the original image that will be used for future resizes)
         if (!$this->saveHandler->save($image)) {
@@ -233,9 +262,13 @@ class Image
             // init the saveHandler with the original image (without params)
             $this->saveHandler->read();
 
-            // create the Imagick entity from the image path
             try {
+
+                // create the Imagick entity from the image path
                 $this->create($this->getBlob());
+
+                // resize the image
+                $image = $this->resize($width, $height);
             }
             catch (FlowException $e) {
                 return [
@@ -249,9 +282,12 @@ class Image
                     'message'     => $e->getMessage(),
                 ];
             }
-
-            // resize the image
-            $image = $this->resize($width, $height);
+            catch (ValidationException $e) {
+                return [
+                    'status_code' => 500,
+                    'message'     => $e->getMessage(),
+                ];
+            }
 
             // save the image (params should not to be passed, we are dealing with the original image that will be used for future resizes)
             if (!$this->saveHandler->save($image, $width, $height)) {
