@@ -95,8 +95,12 @@ class Api
     {
         // source passed via JSON request
         if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
+
             $data = json_decode(file_get_contents('php://input'), true);
-            $source = base64_decode($data['source']);
+
+            $source = filter_var($data['source'], FILTER_VALIDATE_URL)
+                ? $data['source']
+                : base64_decode($data['source']);
         }
         // source uploaded
         else if (!empty($_FILES)) {
